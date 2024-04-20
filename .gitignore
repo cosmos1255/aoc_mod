@@ -1,0 +1,6 @@
+*.class
+*.pyc
+__pycache__
+config.json
+dist/
+.vscode
