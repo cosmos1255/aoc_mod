@@ -38,7 +38,7 @@ jobs:
               with:
                   python-version: "3.11"
 
-            - name: Install dependencies
+            - name: Run tests
               uses: actions/download-artifact@v4
               with:
                 name: aoc-mod
@@ -48,9 +48,8 @@ jobs:
                   source .venv/bin/activate;
                   pip install -e .[build,test];
                   pip install dist/*.whl;
+                  pytest -vv;
             
-            - name: Run tests
-              run: pytest -vv
     
     # test-pypi-publish:
     #     needs: [build, test]
