@@ -49,7 +49,7 @@ def main():
         if "That's the right answer" in result:
             instructions = aoc_mod.get_puzzle_instructions({YEAR}, {DAY})
             with open(
-                CURRENT_PATH + "instructions_{YEAR}_{DAY}.md", "w", encoding="utf-8"
+                CURRENT_PATH + "/instructions_{YEAR}_{DAY}.md", "w", encoding="utf-8"
             ) as f:
                 f.write(instructions)
 
