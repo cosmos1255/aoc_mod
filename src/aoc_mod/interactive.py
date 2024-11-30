@@ -16,26 +16,54 @@ from aoc_mod.file_templates.py_templates import SINGLE_DAY_PYTHON_SCRIPT
 from aoc_mod.utilities import AOCMod
 
 
-def setup_py_template(year, day):
+def setup_py_template(year, day, options):
+
+    # set up output options
+    input_o = False
+    instructions = False
+
+    if options == "both":
+        input_o = True
+        instructions = True
+    elif options == "input":
+        input_o = True
+    elif options == "instructions":
+        instructions = True
 
     # create proper files to be used
     day_path = f"challenges/{year}/day{day}"
 
     os.system(f"mkdir -p {day_path}")
 
-    soln_path = f"{day_path}/day{day}.py"
+    solution_path = f"{day_path}/day{day}.py"
+    input_path = f"{day_path}/input_{day}.txt"
+    instructions_path = f"{day_path}/instructions_{year}_{day}.md"
 
-    if not os.path.exists(soln_path):
-        with open(soln_path, "w", encoding="utf-8") as f_soln:
+    if not os.path.exists(solution_path):
+        with open(solution_path, "w", encoding="utf-8") as f_soln:
             f_soln.write(
                 SINGLE_DAY_PYTHON_SCRIPT.format(
                     YEAR=year,
                     DAY=day,
                 )
             )
-        logging.info("%s, Day %s solution file created: %s", year, day, soln_path)
+        print(f"{year}, Day {day} solution file created: {solution_path}")
     else:
         logging.warning("%s, Day %s solution file already exists.", year, day)
+
+    aoc_mod = AOCMod()
+
+    if input_o:
+        input_data = aoc_mod.get_puzzle_input(year, day)
+        with open(input_path, "w", encoding="utf-8") as f:
+            f.write(input_data)
+        print(f"{year}, Day {day} input file created: {input_path}")
+
+    if instructions:
+        instructions = aoc_mod.get_puzzle_instructions(year, day)
+        with open(instructions_path, "w", encoding="utf-8") as f:
+            f.write(instructions)
+        print(f"{year}, Day {day} instructions file created: {instructions_path}")
 
 
 def generate_parser():
@@ -65,6 +93,14 @@ def generate_parser():
         "--date",
         metavar="YEAR:DAY",
         help="Enter the year and day of the Advent of Code challenge you would like.",
+    )
+
+    setup_parser.add_argument(
+        "-o",
+        "--options",
+        choices=["input", "instructions", "both"],
+        default="both",
+        help="Input: Get the puzzle input; Instructions: Get the puzzle instructions; Both: Get both.",
     )
 
     # define the submit subparser
@@ -116,7 +152,7 @@ def interactive():
 
         if aoc_mod.verify_correct_date(int(year), 12, int(day)):
 
-            setup_py_template(int(year), int(day))
+            setup_py_template(int(year), int(day), opts.options)
 
         else:
             logging.error("Invalid date entered.")
