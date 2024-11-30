@@ -26,7 +26,6 @@ jobs:
                   name: aoc-mod
                   path: |
                       dist/
-
     test:
         needs: [build]
         runs-on: ubuntu-latest
