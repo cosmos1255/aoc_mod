@@ -6,14 +6,15 @@ AOC_MOD is intended to be a one-size-fits-all library module for Advent of Code 
 
 ## Library structure and components
 
-### Features - 0.1.0
+### Features - 0.1.*
 
 - ~~puzzle instruction parser to grab the day's puzzle instructions from the Advent of Code website and parse as needed~~
 - ~~puzzle input data parser to grab the day's problem input for parsing~~
 - ~~ability to submit the puzzle input and raise exceptions as needed for useful feedback to the developer~~
 - ~~read from the Linux and Windows environment variables to get the session_id and user_agent~~
+- ~~better data validation (i.e. ensuring that functions like `get_puzzle_input` accept integer values regardless)~~
 
-### Features - 0.2.0
+### Features - Planned
 
 - Windows support for creating challenge files.
 - More file templates to include languages like C/C++, Java, etc.

@@ -11,6 +11,7 @@ Author: David Eyrich
 import os
 import logging
 import argparse
+import importlib.metadata
 from aoc_mod.file_templates.py_templates import SINGLE_DAY_PYTHON_SCRIPT
 from aoc_mod.utilities import AOCMod
 
@@ -37,18 +38,22 @@ def setup_py_template(year, day):
         logging.warning("%s, Day %s solution file already exists.", year, day)
 
 
-def aoc_mod_parse_args():
+def generate_parser():
     """Simple argparser."""
 
-    args = argparse.ArgumentParser(add_help=True)
+    parser = argparse.ArgumentParser(add_help=True)
 
-    args.add_argument(
+    parser.add_argument(
         "--debug", action="store_true", help="Enable debug print statements."
     )
 
-    args.add_argument("--version", action="version", version="aoc-mod version 0.1.1")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"aoc-mod version {importlib.metadata.version("aoc-mod")}",
+    )
 
-    subparsers = args.add_subparsers()
+    subparsers = parser.add_subparsers(required=True)
 
     # define the setup subparser
     setup_parser = subparsers.add_parser(
@@ -85,11 +90,12 @@ def aoc_mod_parse_args():
         required=True,
     )
 
-    return args.parse_args()
+    return parser
 
 
 def interactive():
-    opts = aoc_mod_parse_args()
+    parser = generate_parser()
+    opts = parser.parse_args()
 
     if opts.debug:
         logging.basicConfig(level=logging.DEBUG)
