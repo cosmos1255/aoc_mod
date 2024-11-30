@@ -17,6 +17,12 @@ def mock_aoc_mod(monkeypatch):
             self.session_id = "test_session_id"
             self.user_agent = "test_user_agent"
 
+        def get_puzzle_input(self, year, day):
+            return "test_input"
+
+        def get_puzzle_instructions(self, year, day):
+            return "test_instructions"
+
         def get_current_date(self):
             return self.current_time
 
@@ -60,7 +66,7 @@ def test_interactive_invalid_date(monkeypatch, caplog, mock_aoc_mod):
 
 
 def test_interactive_setup_py_template(monkeypatch, capsys, mock_aoc_mod):
-    def mock_setup_py_template(year, day):
+    def mock_setup_py_template(year, day, options):
         print(f"Setup template for year: {year}, day: {day}")
 
     monkeypatch.setattr("aoc_mod.interactive.setup_py_template", mock_setup_py_template)
@@ -68,6 +74,56 @@ def test_interactive_setup_py_template(monkeypatch, capsys, mock_aoc_mod):
     interactive()
     captured = capsys.readouterr()
     assert "Setup template for year: 2023, day: 1" in captured.out
+
+
+def test_interactive_setup_py_template_with_both_options(
+    monkeypatch, capsys, mock_aoc_mod
+):
+    def mock_setup_py_template(year, day, options):
+        print(f"Setup template for year: {year}, day: {day}")
+
+    monkeypatch.setattr("aoc_mod.interactive.setup_py_template", mock_setup_py_template)
+    monkeypatch.setattr("sys.argv", ["interactive.py", "setup", "--date", "2023:1"])
+    interactive()
+    captured = capsys.readouterr()
+    assert "Setup template for year: 2023, day: 1" in captured.out
+
+
+def test_interactive_setup_py_template_with_input_option(
+    monkeypatch, capsys, mock_aoc_mod
+):
+    def mock_setup_py_template(year, day, options):
+        print(f"Setup template for year: {year}, day: {day}")
+        if options == "input":
+            print("Setup input file")
+
+    monkeypatch.setattr("aoc_mod.interactive.setup_py_template", mock_setup_py_template)
+    monkeypatch.setattr(
+        "sys.argv", ["interactive.py", "setup", "--date", "2023:1", "-o", "input"]
+    )
+    interactive()
+    captured = capsys.readouterr()
+    assert "Setup template for year: 2023, day: 1" in captured.out
+    assert "Setup input file" in captured.out
+
+
+def test_interactive_setup_py_template_with_interactive_options(
+    monkeypatch, capsys, mock_aoc_mod
+):
+    def mock_setup_py_template(year, day, options):
+        print(f"Setup template for year: {year}, day: {day}")
+        if options == "instructions":
+            print("Setup instructions file")
+
+    monkeypatch.setattr("aoc_mod.interactive.setup_py_template", mock_setup_py_template)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["interactive.py", "setup", "--date", "2023:1", "-o", "instructions"],
+    )
+    interactive()
+    captured = capsys.readouterr()
+    assert "Setup template for year: 2023, day: 1" in captured.out
+    assert "Setup instructions file" in captured.out
 
 
 def test_interactive_default_date(monkeypatch, capsys, mock_aoc_mod):
