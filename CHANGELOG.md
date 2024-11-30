@@ -4,6 +4,25 @@ All notable changes to AOC-Mod will be documented in this file.
 
 ## [Unreleased]
 
+### Added 
+
+- New deployment test to TestPypi to ensure that we are good to go prior to actual release.
+
+## [0.1.1] - 2024-11-30
+
+### Added
+
+- New instructions to the README.md for use of AOC-Mod as a library.
+- New tests to run the python package installation.
+
+### Fixed
+
+- Bug when installing the aoc-mod distribution. No files were present during the installation.
+
+### Changed
+
+- Release to PyPi only runs when pushed to the main branch (through a pull request).
+
 ## [0.1.0] - 2024-11-29
 
 ### Added

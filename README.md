@@ -12,6 +12,21 @@ pip install aoc-mod
 
 AOC Mod can be used interactively from the command line or as a library to import into your Advent of Code challenge solutions with Python.
 
+You may follow the sections below to either utilize the command-line utility or see this example for using the library programmatically.
+
+```py
+from aoc_mod.utilites import AOCMod
+
+aoc_mod = AOCMod()
+
+puzz_input = aoc_mod.get_puzzle_input({YEAR}, {DAY})
+instructions = aoc_mod.get_puzzle_instructions({YEAR}, {DAY})
+
+sol = do_the_solution_p1()
+
+aoc_mod.submit_answer({YEAR}, {DAY}, 1, sol)
+```
+
 
 ## How to set the session ID environment variable
 

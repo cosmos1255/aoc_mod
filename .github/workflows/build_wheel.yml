@@ -26,8 +26,8 @@ jobs:
                   name: aoc-mod
                   path: |
                       dist/
-                      !dist/**/*.md
     test:
+        needs: [build]
         runs-on: ubuntu-latest
 
         steps:
@@ -37,19 +37,43 @@ jobs:
               with:
                   python-version: "3.11"
 
-            - run: echo "Setting up for tests..."
+            - name: Run tests
+              uses: actions/download-artifact@v4
+              with:
+                name: aoc-mod
+                path: dist/
             - run: |
                   $(realpath `which python3`) -m venv .venv;
                   source .venv/bin/activate;
                   pip install -e .[build,test];
+                  pip install dist/*.whl;
                   pytest -vv;
-            - run: echo "Tests complete"
+            
+    
+    # test-pypi-publish:
+    #     needs: [build, test]
+    #     name: upload release to TestPyPI
+    #     runs-on: ubuntu-latest
+    #     environment: test_pypi
+    #     permissions:
+    #         # IMPORTANT: this permission is mandatory for trusted publishing
+    #         id-token: write
+    #     steps:
+    #     # retrieve your distributions here
 
+    #     - name: Download archive
+    #       uses: actions/download-artifact@v4
+    #       with:
+    #           name: aoc-mod
+    #           path: dist/
+    #     - name: Publish package distributions to PyPI
+    #       uses: pypa/gh-action-pypi-publish@release/v1
 
     pypi-publish:
         needs: [build, test]
         name: upload release to PyPI
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
         environment: pypi
         permissions:
             # IMPORTANT: this permission is mandatory for trusted publishing
