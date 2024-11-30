@@ -3,7 +3,7 @@ requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aoc_mod_cosmos1255"
+name = "aoc_mod"
 version = "0.1.0"
 authors = [{name = "David Eyrich"}]
 requires-python = ">=3.8"
