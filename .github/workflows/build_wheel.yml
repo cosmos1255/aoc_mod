@@ -50,7 +50,7 @@ jobs:
                   pip install dist/*.whl;
             
             - name: Run tests
-              run: pytest -vv"
+              run: pytest -vv
     
     # test-pypi-publish:
     #     needs: [build, test]
