@@ -4,9 +4,23 @@ All notable changes to AOC-Mod will be documented in this file.
 
 ## [Unreleased]
 
-### Added 
+## [0.1.2] - 2024-11-30
 
-- New deployment test to TestPypi to ensure that we are good to go prior to actual release.
+### Added
+
+- Better versioning with `importlib.metadata` to place the version in only the pyproject.toml and then distribute it throughout the project, notably to `interactive.py`'s `--version` option.
+
+### Changed
+
+- Updated library functions perform better parsing of integer values like year or day and not leaving it up to the user to figure it out.
+
+### Documentation
+
+- Added better comments throughout the code.
+
+### Fixed
+
+- Bug when running `aoc-mod` without input would throw an AttributeError exception.
 
 ## [0.1.1] - 2024-11-30
 

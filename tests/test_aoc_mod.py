@@ -7,6 +7,13 @@ def run_command(command):
     return result
 
 
+def test_aoc_mod_sanity():
+    """Test the aoc-mod command with no arguments."""
+    result = run_command("aoc-mod")
+    assert result.returncode == 2
+    assert "usage: aoc-mod" in result.stderr
+
+
 def test_aoc_mod_help():
     """Test the aoc-mod command with the --help option."""
     result = run_command("aoc-mod --help")

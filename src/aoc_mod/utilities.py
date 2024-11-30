@@ -57,12 +57,12 @@ class AOCMod:
             return False
         return True
 
-    def get_puzzle_instructions(self, year=None, day=None):
+    def get_puzzle_instructions(self, year: int = None, day: int = None):
         """Get the puzzle instructions for the specified year and day.
 
         Args:
-            year (int, optional): The year of the puzzle. Defaults to the current year.
-            day (int, optional): The day of the puzzle. Defaults to the current day.
+            year (int): The year of the puzzle. Defaults to the current year.
+            day (int): The day of the puzzle. Defaults to the current day.
 
         Returns:
             str: The puzzle instructions in markdown format.
@@ -70,13 +70,17 @@ class AOCMod:
         # this is an authenticated method
         self.set_auth_variables()
 
+        # if this function wasn't provided with a date, get current year, day
         if year is None or day is None:
             year = self.current_time.tm_year
             month = self.current_time.tm_mon
             day = self.current_time.tm_mday
         else:
             month = 12
+            year = int(year)
+            day = int(day)
 
+        # check current date (for better error reporting)
         if not self.verify_correct_date(year, month, day):
             if month == 12:
                 LOGGER.error(
@@ -102,6 +106,7 @@ class AOCMod:
             LOGGER.error("HTTP Error (%s)", errh.args[0])
             return None
 
+        # run the instruction output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
 
         for entry in soup.main.contents:
@@ -111,14 +116,15 @@ class AOCMod:
             result_content = str(entry).strip()
             break
 
+        # turn the instructions into markdown
         return markdownify.markdownify(result_content)
 
-    def get_puzzle_input(self, year=None, day=None):
+    def get_puzzle_input(self, year: int = None, day: int = None):
         """Get the puzzle input for the specified year and day.
 
         Args:
-            year (int, optional): The year of the puzzle. Defaults to the current year.
-            day (int, optional): The day of the puzzle. Defaults to the current day.
+            year (int): The year of the puzzle. Defaults to the current year.
+            day (int): The day of the puzzle. Defaults to the current day.
 
         Returns:
             str: The puzzle input.
@@ -133,6 +139,8 @@ class AOCMod:
             day = self.current_time.tm_mday
         else:
             month = 12
+            year = int(year)
+            day = int(day)
 
         # check current date (for better error reporting)
         if not self.verify_correct_date(year, month, day):
@@ -165,7 +173,7 @@ class AOCMod:
 
         return res.text.strip()
 
-    def submit_answer(self, year, day, level, answer):
+    def submit_answer(self, year: int, day: int, level: int, answer):
         """Submit the puzzle answer for the specified year, day, and level.
 
         Args:
@@ -179,6 +187,10 @@ class AOCMod:
         """
         # this is an authenticated method
         self.set_auth_variables()
+
+        # just in case the year and day are not integers
+        year = int(year)
+        day = int(day)
 
         # check current date (for better error reporting)
         if not self.verify_correct_date(year, 12, day):
@@ -205,6 +217,7 @@ class AOCMod:
             LOGGER.error("Request Exception (%s)", err.args[0])
             return None
 
+        # run the response output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
 
         for entry in soup.article.contents:

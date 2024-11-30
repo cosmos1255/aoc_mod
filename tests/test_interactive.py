@@ -1,7 +1,7 @@
 import pytest
 import logging
 import time
-from aoc_mod.interactive import interactive, aoc_mod_parse_args
+from aoc_mod.interactive import interactive, generate_parser
 from aoc_mod.utilities import AOCMod
 
 
