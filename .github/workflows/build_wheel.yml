@@ -56,9 +56,10 @@ jobs:
         steps:
         # retrieve your distributions here
 
+        - name: Checkout
+          uses: actions/checkout@v4
         - name: Publish package distributions to PyPI
-        - uses: actions/checkout@v4
-        - uses: actions/dowload-artifact@v4
+          uses: actions/dowload-artifact@v4
           with:
               name: aoc-mod
               path: |
