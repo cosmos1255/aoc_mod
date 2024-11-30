@@ -1,7 +1,7 @@
 SINGLE_DAY_PYTHON_SCRIPT = '''"""Advent of Code {YEAR}, Day: {DAY}
 Link: https://adventofcode.com/{YEAR}/day/{DAY}"""
 
-from aoc_mod import AOCMod
+from aoc_mod.utilities import AOCMod
 
 def parse_input(raw_input):
     # parse the input data
