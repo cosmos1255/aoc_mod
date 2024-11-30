@@ -1,0 +1,59 @@
+name: aoc-mod build/test
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            - run: echo "Initiating aoc-mod build..."
+            - run: |
+                  $(realpath `which python3`) -m venv .venv;
+                  source .venv/bin/activate;
+                  python -m pip install --upgrade pip setuptools wheel;
+                  pip install -e .[build];
+                  python -m build;
+            - run: echo "aoc-mod build complete..."
+            - name: Archive production artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: |
+                      dist
+                      !dist/**/*.md
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            - run: echo "Initiating sneaky-helper build..."
+            - run: |
+                  $(realpath `which python3`) -m venv .venv;
+                  source .venv/bin/activate;
+                  pip install -e .[build,test];
+            - run: pytest -vv
+
+
+    pypi-publish:
+        needs: [build, test]
+        name: upload release to PyPI
+        runs-on: ubuntu-latest
+        permissions:
+            # IMPORTANT: this permission is mandatory for trusted publishing
+            id-token: write
+        steps:
+        # retrieve your distributions here
+
+        - name: Publish package distributions to PyPI
+          uses: actions/checkout@v4

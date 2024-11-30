@@ -1,6 +1,20 @@
-# Todo for aoc-mod
+# AOC_MOD library feature update
 
-- fix current issues with requests and refactoring
-- find a way to import a template file for modularization
-- write some tests
-- create aoc-mod as a wheel
+## Description
+
+AOC_MOD is intended to be a one-size-fits-all library module for Advent of Code projects to use. Essentially, this library will be loaded and instantiated and will provide vast numbers of functions to assist in the import of daily problem input as well as submission of answers.
+
+## Library structure and components
+
+### Features - 0.1.0
+
+- ~~puzzle instruction parser to grab the day's puzzle instructions from the Advent of Code website and parse as needed~~
+- ~~puzzle input data parser to grab the day's problem input for parsing~~
+- ~~ability to submit the puzzle input and raise exceptions as needed for useful feedback to the developer~~
+- ~~read from the Linux and Windows environment variables to get the session_id and user_agent~~
+
+### Features - 0.2.0
+
+- Windows support for creating challenge files.
+- More file templates to include languages like C/C++, Java, etc.
+- readthedocs website to explain installation and use of the module
