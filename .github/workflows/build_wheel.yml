@@ -50,6 +50,30 @@ jobs:
             
             - name: Run tests
               run: pytest -vv"
+
+    test-sanity:
+        needs: [build]
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies
+              uses: actions/download-artifact@v4
+              with:
+                name: aoc-mod
+                path: dist/
+            - run: |
+                  $(realpath `which python3`) -m venv .venv;
+                  source .venv/bin/activate;
+                  pip install dist/*.whl;
+            
+            - name: Run tests
+              run: pytest -vv"
     
     # test-pypi-publish:
     #     needs: [build, test]
@@ -71,7 +95,7 @@ jobs:
     #       uses: pypa/gh-action-pypi-publish@release/v1
 
     pypi-publish:
-        needs: [build, test]
+        needs: [build, test, test-sanity]
         name: upload release to PyPI
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main'
