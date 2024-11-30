@@ -37,12 +37,13 @@ jobs:
               with:
                   python-version: "3.11"
 
-            - run: echo "Initiating sneaky-helper build..."
+            - run: echo "Setting up for tests..."
             - run: |
                   $(realpath `which python3`) -m venv .venv;
                   source .venv/bin/activate;
                   pip install -e .[build,test];
-            - run: pytest -vv
+                  pytest -vv;
+            - run: echo "Tests complete"
 
 
     pypi-publish:
