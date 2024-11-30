@@ -50,7 +50,7 @@ def generate_parser():
     parser.add_argument(
         "--version",
         action="version",
-        version=f"aoc-mod version {importlib.metadata.version("aoc-mod")}",
+        version=f"aoc-mod version {importlib.metadata.version('aoc-mod')}",
     )
 
     subparsers = parser.add_subparsers(required=True)
