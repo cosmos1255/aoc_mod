@@ -46,7 +46,7 @@ def aoc_mod_parse_args():
         "--debug", action="store_true", help="Enable debug print statements."
     )
 
-    args.add_argument("--version", action="version", version="aoc-mod version 0.1.0")
+    args.add_argument("--version", action="version", version="aoc-mod version 0.1.1")
 
     subparsers = args.add_subparsers()
 
