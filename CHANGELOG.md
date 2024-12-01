@@ -4,7 +4,7 @@ All notable changes to AOC-Mod will be documented in this file.
 
 ## [Unreleased]
 
-## [0.1.4] - 2024-11-30
+## [0.1.5] - 2024-11-30
 
 ### Added
 

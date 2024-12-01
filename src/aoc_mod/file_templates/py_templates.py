@@ -59,7 +59,7 @@ def main():
 
     # submit part two, if ready
     if answer_two["submit"]:
-        result = aoc_mod.submit_answer({YEAR}, {DAY}, 1, answer_two["result"])
+        result = aoc_mod.submit_answer({YEAR}, {DAY}, 2, answer_two["result"])
         
         # if we get the correct answer for part two, we'll retrieve the rest of the instructions
         if "That's the right answer" in result:
