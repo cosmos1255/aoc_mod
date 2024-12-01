@@ -109,12 +109,12 @@ class AOCMod:
         # run the instruction output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
 
+        result_content = ""
         for entry in soup.main.contents:
             if len(str(entry).strip()) == 0:
                 continue
 
-            result_content = str(entry).strip()
-            break
+            result_content += str(entry).strip()
 
         # turn the instructions into markdown
         return markdownify.markdownify(result_content)
