@@ -20,7 +20,7 @@ jobs:
 
             # cache the installation of poetry
             - name: cache poetry install
-              uses: actions/cache@v2
+              uses: actions/cache@v4
               with:
                   path: ~/.local
                   key: poetry-2.2.1-0
