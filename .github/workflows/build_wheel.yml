@@ -3,78 +3,91 @@ on: [push]
 
 jobs:
     build:
+        name: poetry build and lint
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.11"]
 
         steps:
             - uses: actions/checkout@v4
-            - name: Set up Python 3.11
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.11"
 
-            - run: echo "Initiating aoc-mod build..."
-            - run: poetry build
-            - run: echo "aoc-mod build complete..."
-            - name: Archive production artifacts
-              uses: actions/upload-artifact@v4
+            # set up the python version that we'll use
+            - name: Set up Python ${{matrix.python-version}}
+              uses: actions/setup-python@v5
               with:
-                  name: aoc-mod
-                  path: |
-                      dist/
-    test:
-        needs: [build]
-        runs-on: ubuntu-latest
+                  python-version: ${{matrix.python-version}}
 
-        steps:
-            - uses: actions/checkout@v4
-            - name: Set up Python 3.11
-              uses: actions/setup-python@v4
+            # cache the installation of poetry
+            - name: cache poetry install
+              uses: actions/cache@v2
               with:
-                  python-version: "3.11"
+                  path: ~/.local
+                  key: poetry-2.2.1-0
 
-            - name: Run tests
-              uses: actions/download-artifact@v4
+            # install poetry
+            - name: Install Poetry
+              uses: snok/install-poetry@v1
               with:
-                  name: aoc-mod
-                  path: dist/
-            - run: poetry install
+                  version: 2.2.1
+                  virtualenvs-create: true
+                  virtualenvs-in-project: true
+
+            # cache and install poetry dependencies
+            - name: Cache Poetry dependencies
+              id: cache-poetry-dependencies
+              uses: actions/cache@v4
+              with:
+                  path: .venv
+                  key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-poetry-
+            - name: Install dependencies
+              if: steps.cache-poetry-dependencies.outputs.cache-hit != 'true'
+              run: poetry install --no-root --no-interaction
+
+            # install the actual application now
+            - run: poetry install --no-interaction
+
+            # run some tests and linting
+            - run: poetry run ruff check
             - run: poetry run pytest
 
-    test-pypi-publish:
-        needs: [build, test]
-        name: upload release to TestPyPI
-        runs-on: ubuntu-latest
-        environment: test_pypi
-        permissions:
-            # IMPORTANT: this permission is mandatory for trusted publishing
-            id-token: write
-        steps:
-            # retrieve your distributions here
+    # test-pypi-publish:
+    #     needs: [build]
+    #     name: upload release to TestPyPI
+    #     runs-on: ubuntu-latest
+    #     environment: test_pypi
+    #     permissions:
+    #         # IMPORTANT: this permission is mandatory for trusted publishing
+    #         id-token: write
+    #     steps:
+    #         # retrieve your distributions here
 
-            - name: Download archive
-              uses: actions/download-artifact@v4
-              with:
-                  name: aoc-mod
-                  path: dist/
-            - name: Publish package distributions to PyPI
-              uses: pypa/gh-action-pypi-publish@release/v1
+    #         - name: Download archive
+    #           uses: actions/download-artifact@v4
+    #           with:
+    #               name: aoc-mod
+    #               path: dist/
+    #         - name: Publish package distributions to PyPI
+    #           uses: pypa/gh-action-pypi-publish@release/v1
 
-    pypi-publish:
-        needs: [build, test]
-        name: upload release to PyPI
-        runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main'
-        environment: pypi
-        permissions:
-            # IMPORTANT: this permission is mandatory for trusted publishing
-            id-token: write
-        steps:
-            # retrieve your distributions here
+    # pypi-publish:
+    #     needs: [build]
+    #     name: upload release to PyPI
+    #     runs-on: ubuntu-latest
+    #     if: github.ref == 'refs/heads/main'
+    #     environment: pypi
+    #     permissions:
+    #         # IMPORTANT: this permission is mandatory for trusted publishing
+    #         id-token: write
+    #     steps:
+    #         # retrieve your distributions here
 
-            - name: Download archive
-              uses: actions/download-artifact@v4
-              with:
-                  name: aoc-mod
-                  path: dist/
-            - name: Publish package distributions to PyPI
-              uses: pypa/gh-action-pypi-publish@release/v1
+    #         - name: Download archive
+    #           uses: actions/download-artifact@v4
+    #           with:
+    #               name: aoc-mod
+    #               path: dist/
+    #         - name: Publish package distributions to PyPI
+    #           uses: pypa/gh-action-pypi-publish@release/v1
