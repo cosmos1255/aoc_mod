@@ -13,12 +13,7 @@ jobs:
                   python-version: "3.11"
 
             - run: echo "Initiating aoc-mod build..."
-            - run: |
-                  $(realpath `which python3`) -m venv .venv;
-                  source .venv/bin/activate;
-                  python -m pip install --upgrade pip setuptools wheel;
-                  pip install -e .[build];
-                  python -m build;
+            - run: poetry build
             - run: echo "aoc-mod build complete..."
             - name: Archive production artifacts
               uses: actions/upload-artifact@v4
@@ -40,34 +35,29 @@ jobs:
             - name: Run tests
               uses: actions/download-artifact@v4
               with:
-                name: aoc-mod
-                path: dist/
-            - run: |
-                  $(realpath `which python3`) -m venv .venv;
-                  source .venv/bin/activate;
-                  pip install -e .[build,test];
-                  pip install dist/*.whl;
-                  pytest -vv;
-            
-    
-    # test-pypi-publish:
-    #     needs: [build, test]
-    #     name: upload release to TestPyPI
-    #     runs-on: ubuntu-latest
-    #     environment: test_pypi
-    #     permissions:
-    #         # IMPORTANT: this permission is mandatory for trusted publishing
-    #         id-token: write
-    #     steps:
-    #     # retrieve your distributions here
+                  name: aoc-mod
+                  path: dist/
+            - run: poetry install
+            - run: poetry run pytest
 
-    #     - name: Download archive
-    #       uses: actions/download-artifact@v4
-    #       with:
-    #           name: aoc-mod
-    #           path: dist/
-    #     - name: Publish package distributions to PyPI
-    #       uses: pypa/gh-action-pypi-publish@release/v1
+    test-pypi-publish:
+        needs: [build, test]
+        name: upload release to TestPyPI
+        runs-on: ubuntu-latest
+        environment: test_pypi
+        permissions:
+            # IMPORTANT: this permission is mandatory for trusted publishing
+            id-token: write
+        steps:
+            # retrieve your distributions here
+
+            - name: Download archive
+              uses: actions/download-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
+            - name: Publish package distributions to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
 
     pypi-publish:
         needs: [build, test]
@@ -79,12 +69,12 @@ jobs:
             # IMPORTANT: this permission is mandatory for trusted publishing
             id-token: write
         steps:
-        # retrieve your distributions here
+            # retrieve your distributions here
 
-        - name: Download archive
-          uses: actions/download-artifact@v4
-          with:
-              name: aoc-mod
-              path: dist/
-        - name: Publish package distributions to PyPI
-          uses: pypa/gh-action-pypi-publish@release/v1
+            - name: Download archive
+              uses: actions/download-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
+            - name: Publish package distributions to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
