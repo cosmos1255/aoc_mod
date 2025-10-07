@@ -2,7 +2,20 @@
 
 All notable changes to AOC-Mod will be documented in this file.
 
-## [Unreleased]
+## [Unreleased] - probable 0.2.0
+
+### Added
+
+- Documentation and generation with Sphinx
+
+### Changed
+
+- Reworked the build system to use Poetry instead of Setuptools
+
+### Documentation
+
+- Re-wrote the README and other documentation for Sphinx
+- Added or update function/class docstrings and other comments throughout the codebase
 
 ## [0.1.5] - 2024-11-30
 

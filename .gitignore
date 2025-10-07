@@ -7,3 +7,6 @@ dist/
 *.venv
 *.egg-info
 *.pytest_cache
+.ruff_cache/
+challenges/
+poetry.lock

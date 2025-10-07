@@ -8,27 +8,23 @@ the files pertaining to that day and year.
 Author: David Eyrich
 """
 
-import os
-import logging
 import argparse
 import importlib.metadata
+import logging
+import os
+
 from aoc_mod.file_templates.py_templates import SINGLE_DAY_PYTHON_SCRIPT
 from aoc_mod.utilities import AOCMod
 
 
-def setup_py_template(year, day, options):
+def setup_py_template(year: int, day: int):
+    """get the instructions and input data and setup a template accordingly
 
-    # set up output options
-    input_o = False
-    instructions = False
-
-    if options == "both":
-        input_o = True
-        instructions = True
-    elif options == "input":
-        input_o = True
-    elif options == "instructions":
-        instructions = True
+    :param year: user-entered or current year
+    :type year: int
+    :param day: user-entered or current day
+    :type day: int
+    """
 
     # create proper files to be used
     day_path = f"challenges/{year}/day{day}"
@@ -53,28 +49,32 @@ def setup_py_template(year, day, options):
 
     aoc_mod = AOCMod()
 
-    if input_o:
+    if not os.path.exists(input_path):
         input_data = aoc_mod.get_puzzle_input(year, day)
         with open(input_path, "w", encoding="utf-8") as f:
             f.write(input_data)
         print(f"{year}, Day {day} input file created: {input_path}")
 
-    if instructions:
+    if not os.path.exists(instructions_path):
         instructions = aoc_mod.get_puzzle_instructions(year, day)
         with open(instructions_path, "w", encoding="utf-8") as f:
             f.write(instructions)
         print(f"{year}, Day {day} instructions file created: {instructions_path}")
 
 
-def generate_parser():
-    """Simple argparser."""
+def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
+    """create an argument parser and parse user args
+
+    :return: parser.parse_known_args() return value
+    :rtype: tuple[Type[argparse.Namespace], list[str]]
+    """
+
+    ### define the basic parser object ###
 
     parser = argparse.ArgumentParser(add_help=True)
-
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug print statements."
     )
-
     parser.add_argument(
         "--version",
         action="version",
@@ -83,11 +83,11 @@ def generate_parser():
 
     subparsers = parser.add_subparsers(required=True)
 
-    # define the setup subparser
+    ### define setup arguments ###
+
     setup_parser = subparsers.add_parser(
         "setup", help="Initiate the setup of the files for AoC."
     )
-
     setup_parser.add_argument(
         "-d",
         "--date",
@@ -95,15 +95,8 @@ def generate_parser():
         help="Enter the year and day of the Advent of Code challenge you would like.",
     )
 
-    setup_parser.add_argument(
-        "-o",
-        "--options",
-        choices=["input", "instructions", "both"],
-        default="both",
-        help="Input: Get the puzzle input; Instructions: Get the puzzle instructions; Both: Get both.",
-    )
+    ### define submission arguments ###
 
-    # define the submit subparser
     submit_parser = subparsers.add_parser(
         "submit", help="Initiate a submission of the answer for an AoC problem."
     )
@@ -117,7 +110,6 @@ def generate_parser():
         help="Part A = 1; Part B = 2",
         required=True,
     )
-
     submit_parser.add_argument(
         "-d",
         "--date",
@@ -126,37 +118,39 @@ def generate_parser():
         required=True,
     )
 
-    return parser
+    return parser.parse_known_args()
 
 
 def interactive():
-    parser = generate_parser()
-    opts = parser.parse_args()
+    """Entry-point to the aoc-mod program"""
 
-    if opts.debug:
+    known_opts, _ = parse_arguments()
+
+    # enable debugging, if needed
+    if known_opts.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # create an AOCMod class instance
     aoc_mod = AOCMod()
-    if opts.date:
-        year, day = opts.date.split(":", 1)
+
+    # if a date is supplied, parse it, otherwise get the current date
+    if known_opts.date:
+        year, day = known_opts.date.split(":", 1)
     else:
         current_time = aoc_mod.get_current_date()
         year, day = current_time.tm_year, current_time.tm_mday
+
     print(f"Year: {year}, Day: {day}")
 
-    if "answer" in opts and "level" in opts:
-        print(f"Answer: {opts.answer}, Level: {opts.level}")
+    # if we are submitting, let's do it, otherwise we'll setup the template
+    if "answer" in known_opts and "level" in known_opts:
+        print(f"Answer: {known_opts.answer}, Level: {known_opts.level}")
 
-        aoc_mod.submit_answer(int(year), int(day), int(opts.level), opts.answer)
+        aoc_mod.submit_answer(
+            int(year), int(day), int(known_opts.level), known_opts.answer
+        )
     else:
-
         if aoc_mod.verify_correct_date(int(year), 12, int(day)):
-
-            setup_py_template(int(year), int(day), opts.options)
-
+            setup_py_template(int(year), int(day))
         else:
             logging.error("Invalid date entered.")
-
-
-if __name__ == "__main__":
-    interactive()

@@ -2,6 +2,17 @@
 
 A library for Advent of Code containing utilities to use while solving problems! If any issues or bugs are discovered, please submit an issue and I'll fix it!
 
+## Documentation [WIP]
+
+The documentation is managed and built using Sphinx through the Poetry build system. To build the documentation and open it, run the following commands:
+
+```bash
+poetry run sphinx-build -M html docs/source/ docs/build/
+firefox docs/build/html/index.html
+```
+
+#################################### REWRITE ABOVE THIS LINE #######################################
+
 ## Installation and basic use
 
 To install, simply run the following command.
@@ -125,15 +136,6 @@ The URL template for Advent of Code puzzle answer submission.
 #### LOGGER
 
 A logger instance for the module.
-
-### Dependencies
-
-- os
-- logging
-- time
-- requests
-- markdownify
-- bs4.BeautifulSoup
 
 ## Contributing
 

@@ -32,10 +32,10 @@ def test_get_current_date():
 
 def test_verify_correct_date():
     aoc_mod = AOCMod()
-    assert aoc_mod.verify_correct_date(2023, 12, 1) == True
-    assert aoc_mod.verify_correct_date(2023, 11, 1) == False
-    assert aoc_mod.verify_correct_date(2023, 12, 26) == False
-    assert aoc_mod.verify_correct_date(2014, 12, 1) == False
+    assert aoc_mod.verify_correct_date(2023, 12, 1)
+    assert not aoc_mod.verify_correct_date(2023, 11, 1)
+    assert not aoc_mod.verify_correct_date(2023, 12, 26)
+    assert not aoc_mod.verify_correct_date(2014, 12, 1)
 
 
 def test_get_puzzle_instructions(monkeypatch):
