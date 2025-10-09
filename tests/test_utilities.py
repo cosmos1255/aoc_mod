@@ -1,41 +1,27 @@
-import requests
 import time
-from aoc_mod.utilities import AOCMod
+
+import pytest
+import requests
+
+from aoc_mod.utilities import AocMod, AocModError
 
 
 def test_set_auth_variables_session_id_set(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
 
-    aoc_mod = AOCMod()
-    aoc_mod.set_auth_variables()
+    aoc_mod = AocMod()
 
     assert aoc_mod.session_id == "test_session_id"
 
 
-def test_set_auth_variables_session_id_missing(monkeypatch, caplog):
+def test_set_auth_variables_session_id_missing(monkeypatch):
     monkeypatch.delenv("SESSION_ID", raising=False)
 
-    aoc_mod = AOCMod()
-    aoc_mod.set_auth_variables()
-
-    assert aoc_mod.session_id == ""
-    assert (
-        "missing environment variable for authentication ('SESSION_ID')" in caplog.text
-    )
-
-
-def test_get_current_date():
-    aoc_mod = AOCMod()
-    current_date = aoc_mod.get_current_date()
-    assert isinstance(current_date, time.struct_time)
-
-
-def test_verify_correct_date():
-    aoc_mod = AOCMod()
-    assert aoc_mod.verify_correct_date(2023, 12, 1)
-    assert not aoc_mod.verify_correct_date(2023, 11, 1)
-    assert not aoc_mod.verify_correct_date(2023, 12, 26)
-    assert not aoc_mod.verify_correct_date(2014, 12, 1)
+    try:
+        _ = AocMod()
+        pytest.fail("did not correctly fail")
+    except AocModError:
+        pass
 
 
 def test_get_puzzle_instructions(monkeypatch):
@@ -51,8 +37,9 @@ def test_get_puzzle_instructions(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
-    aoc_mod = AOCMod()
+    aoc_mod = AocMod()
     instructions = aoc_mod.get_puzzle_instructions(2023, 1)
     assert "Test Puzzle Instructions" in instructions
 
@@ -68,10 +55,9 @@ def test_get_puzzle_input(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
-    aoc_mod = AOCMod()
-    aoc_mod.session_id = "test_session_id"
-    aoc_mod.user_agent = "test_user_agent"
+    aoc_mod = AocMod()
     puzzle_input = aoc_mod.get_puzzle_input(2023, 1)
     assert puzzle_input == "Test Puzzle Input"
 
@@ -88,9 +74,10 @@ def test_submit_answer(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "post", mock_post)
-    aoc_mod = AOCMod()
-    aoc_mod.session_id = "test_session_id"
-    aoc_mod.user_agent = "test_user_agent"
-    response = aoc_mod.submit_answer(2023, 1, 1, "test_answer")
+    aoc_mod = AocMod()
+    response = aoc_mod.submit_answer(2023, 1, 1, 12345)
+    assert response == "Test Puzzle Answer Response"
+    response = aoc_mod.submit_answer(2023, 1, 1, 12345)
     assert response == "Test Puzzle Answer Response"
