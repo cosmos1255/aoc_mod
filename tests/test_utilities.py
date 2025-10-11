@@ -1,4 +1,3 @@
-
 import pytest
 import requests
 
@@ -76,7 +75,5 @@ def test_submit_answer(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "post", mock_post)
     aoc_mod = AocMod()
-    response = aoc_mod.submit_answer(2023, 1, 1, 12345)
-    assert response == "Test Puzzle Answer Response"
     response = aoc_mod.submit_answer(2023, 1, 1, 12345)
     assert response == "Test Puzzle Answer Response"
