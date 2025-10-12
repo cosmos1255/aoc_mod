@@ -113,7 +113,7 @@ jobs:
                       ${{ runner.os }}-poetry-
 
             - name: Deploy to GitHub Pages (optional)
-              if: github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
               uses: peaceiris/actions-gh-pages@v3
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -123,7 +123,7 @@ jobs:
         needs: [build-and-store-artifact]
         name: upload release to TestPyPI
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main'
         environment: test_pypi
         permissions:
             # IMPORTANT: this permission is mandatory for trusted publishing
