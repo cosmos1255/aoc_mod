@@ -23,7 +23,7 @@ templates_path = ["_templates"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "alabaster"
-html_static_path = ["build/html/_static"]
+html_static_path = ["../build/html"]
 
 autoapi_dirs = ["../../src/aoc_mod"]
 autoapi_ignore = ["*/templates/*"]

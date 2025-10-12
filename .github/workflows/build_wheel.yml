@@ -133,7 +133,7 @@ jobs:
         needs: [build-and-store-artifact]
         name: upload release to TestPyPI
         runs-on: ubuntu-latest
-        if: github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main'
+        if: github.event.pull_request.base_ref == '/refs/heads/main'
         environment: test_pypi
         permissions:
             # IMPORTANT: this permission is mandatory for trusted publishing
