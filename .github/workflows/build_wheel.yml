@@ -93,6 +93,10 @@ jobs:
     build_and_deploy_docs:
         needs: [build-and-test]
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pages: write
+            id-token: write
 
         steps:
             - name: Checkout code
@@ -112,12 +116,18 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-poetry-
 
-            - name: Deploy to GitHub Pages (optional)
-              #   if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
-              uses: peaceiris/actions-gh-pages@v3
+            - name: Build documentation
+              run: poetry run sphinx-build -M html docs/source docs/build
+
+            - name: Upload pages artifacts
+              uses: actions/upload-pages-artifact@v3
               with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: docs/build/html
+                  path: docs/build/html
+
+            - name: Deploy to GitHub Pages (optional)
+              if: github.ref == 'refs/heads/main' || github.event.pull_request.base_ref == '/refs/heads/main'
+              id: deployment
+              uses: actions/deploy-pages@v3
 
     test-pypi-publish:
         needs: [build-and-store-artifact]
