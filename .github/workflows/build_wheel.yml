@@ -3,7 +3,6 @@ on: [push]
 
 jobs:
     build:
-        name: poetry build and lint
         runs-on: ubuntu-latest
         strategy:
             matrix:
@@ -51,11 +50,14 @@ jobs:
             - name: Install app
               run: poetry install --no-interaction
 
-            # build the wheel and create artifacts
+            # build the wheel and create artifacts on the latest version of python only
             - name: Build app
+              if: ${{ matrix.python-version }} == "3.13"
               run: poetry build
 
+            # only store artifacts
             - name: Store artifacts from build
+              if: ${{ matrix.python-version }} == "3.13"
               uses: actions/upload-artifact@v4
               with:
                   name: aoc-mod
