@@ -2,12 +2,12 @@ name: aoc-mod build/test/deploy
 on: [push]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+    build-and-test:
+        name: Build and test aoc_mod
         strategy:
             matrix:
                 python-version: ["3.11", "3.12", "3.13"]
-
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -18,13 +18,6 @@ jobs:
               with:
                   python-version: ${{matrix.python-version}}
 
-            # cache the installation of poetry
-            - name: cache poetry install
-              uses: actions/cache@v4
-              with:
-                  path: ~/.local
-                  key: poetry-2.2.1-0
-
             # install poetry
             - name: Install Poetry
               uses: snok/install-poetry@v1
@@ -32,6 +25,13 @@ jobs:
                   version: 2.2.1
                   virtualenvs-create: true
                   virtualenvs-in-project: true
+
+            # cache the installation of poetry
+            - name: cache poetry install
+              uses: actions/cache@v4
+              with:
+                  path: ~/.local
+                  key: poetry-2.2.1-0
 
             # cache and install poetry dependencies
             - name: Cache Poetry dependencies
@@ -50,25 +50,28 @@ jobs:
             - name: Install app
               run: poetry install --no-interaction
 
-            # build the wheel and create artifacts on the latest version of python only
-            - name: Build app
-              run: poetry build
+            - name: Run ruff linter
+              run: poetry run ruff check
 
-            # only store artifacts
-            - name: Store artifacts from build
-              uses: actions/upload-artifact@v4
-              with:
-                  name: aoc-mod-${{ matrix.python-version }}
-                  path: dist/
+            - name: Run tests
+              run: poetry run pytest
 
-    lint_and_test:
-        needs: [build]
+    build-and-store-artifact:
+        needs: [build-and-test]
         runs-on: ubuntu-latest
+        name: Build aoc_mod and save artifact
+
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Restore caches poetry files
+            - name: Restore poetry install cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.local
+                  key: poetry-2.2.1-0
+
+            - name: Restore aoc_mod install cache
               uses: actions/cache@v4
               with:
                   path: .venv
@@ -76,21 +79,32 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-poetry-
 
-            - name: Run ruff linter
-              run: poetry run ruff check
+            # build the wheel
+            - name: Build app
+              run: poetry build
 
-            - name: Run tests
-              run: poetry run pytest
+            # only store artifacts
+            - name: Store artifacts from build
+              uses: actions/upload-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
 
     build_and_deploy_docs:
-        needs: [build]
+        needs: [build-and-test]
         runs-on: ubuntu-latest
 
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Restore caches poetry files
+            - name: Restore poetry install cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.local
+                  key: poetry-2.2.1-0
+
+            - name: Restore aoc_mod install cache
               uses: actions/cache@v4
               with:
                   path: .venv
@@ -106,7 +120,7 @@ jobs:
                   publish_dir: docs/build/html
 
     test-pypi-publish:
-        needs: [build]
+        needs: [build-and-store-artifact]
         name: upload release to TestPyPI
         runs-on: ubuntu-latest
         environment: test_pypi
@@ -125,7 +139,7 @@ jobs:
               uses: pypa/gh-action-pypi-publish@release/v1
 
     pypi-publish:
-        needs: [build, lint_and_test]
+        needs: [build-and-store-artifact]
         name: upload release to PyPI
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main'
