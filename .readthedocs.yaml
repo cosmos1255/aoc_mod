@@ -9,13 +9,11 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.11"
-
-python:
-  install:
-    - method: poetry
-      path: .
-      groups:
-        - docs
+  jobs:
+    post_create_environment:
+      - pip install poetry
+    post_install:
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
