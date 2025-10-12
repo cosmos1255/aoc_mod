@@ -17,9 +17,10 @@ Setup a solution directory
 
 The first main option of the **aoc-mod** script is the creation of a solution directory that takes the 
 form "challenges/<year>/day<day_num>". By default, three files will be created in each new directory:
-    * ``input_day<day_num>.txt`` - the puzzle input
-    * ``instructions_day<day_num>.md`` - the puzzle instructions
-    * ``day<day_num>.py`` - a template code file that will be default provided in the project or custom
+
+* ``input_day<day_num>.txt`` - the puzzle input
+* ``instructions_day<day_num>.md`` - the puzzle instructions
+* ``day<day_num>.py`` - a template code file that will be default provided in the project or custom
 
 -----------------------
 Setting a template file
@@ -32,8 +33,8 @@ Code module and can be created by not setting this option.
 The file can take on any format that is necessary and be of any programming language. However, AOC Mod 
 supports two strings that are found and replaced when the template file is generated:
 
-    * ``{YEAR}`` - replaced with the puzzle year
-    * ``{DAY}`` - replaced with the puzzle day
+* ``{YEAR}`` - replaced with the puzzle year
+* ``{DAY}`` - replaced with the puzzle day
 
 These are used in the template file docstring to make it unique for each solution puzzle directory but are
 not required for user-created templates. 
