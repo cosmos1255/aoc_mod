@@ -52,15 +52,13 @@ jobs:
 
             # build the wheel and create artifacts on the latest version of python only
             - name: Build app
-              if: ${{ matrix.python-version }} == "3.13"
               run: poetry build
 
             # only store artifacts
             - name: Store artifacts from build
-              if: ${{ matrix.python-version }} == "3.13"
               uses: actions/upload-artifact@v4
               with:
-                  name: aoc-mod
+                  name: aoc-mod-${{ matrix.python-version }}
                   path: dist/
 
     lint_and_test:
