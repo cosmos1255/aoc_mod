@@ -1,41 +1,18 @@
 import requests
-import time
-from aoc_mod.utilities import AOCMod
+
+from aoc_mod.utilities import AocMod, get_year_and_day, parse_input
 
 
 def test_set_auth_variables_session_id_set(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
 
-    aoc_mod = AOCMod()
-    aoc_mod.set_auth_variables()
+    aoc_mod = AocMod()
 
     assert aoc_mod.session_id == "test_session_id"
 
+    aoc_mod_2 = AocMod(session_id="test_session_id")
 
-def test_set_auth_variables_session_id_missing(monkeypatch, caplog):
-    monkeypatch.delenv("SESSION_ID", raising=False)
-
-    aoc_mod = AOCMod()
-    aoc_mod.set_auth_variables()
-
-    assert aoc_mod.session_id == ""
-    assert (
-        "missing environment variable for authentication ('SESSION_ID')" in caplog.text
-    )
-
-
-def test_get_current_date():
-    aoc_mod = AOCMod()
-    current_date = aoc_mod.get_current_date()
-    assert isinstance(current_date, time.struct_time)
-
-
-def test_verify_correct_date():
-    aoc_mod = AOCMod()
-    assert aoc_mod.verify_correct_date(2023, 12, 1) == True
-    assert aoc_mod.verify_correct_date(2023, 11, 1) == False
-    assert aoc_mod.verify_correct_date(2023, 12, 26) == False
-    assert aoc_mod.verify_correct_date(2014, 12, 1) == False
+    assert aoc_mod_2.session_id == "test_session_id"
 
 
 def test_get_puzzle_instructions(monkeypatch):
@@ -51,8 +28,9 @@ def test_get_puzzle_instructions(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
-    aoc_mod = AOCMod()
+    aoc_mod = AocMod()
     instructions = aoc_mod.get_puzzle_instructions(2023, 1)
     assert "Test Puzzle Instructions" in instructions
 
@@ -68,10 +46,9 @@ def test_get_puzzle_input(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
-    aoc_mod = AOCMod()
-    aoc_mod.session_id = "test_session_id"
-    aoc_mod.user_agent = "test_user_agent"
+    aoc_mod = AocMod()
     puzzle_input = aoc_mod.get_puzzle_input(2023, 1)
     assert puzzle_input == "Test Puzzle Input"
 
@@ -88,9 +65,54 @@ def test_submit_answer(monkeypatch):
 
         return MockResponse()
 
+    monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "post", mock_post)
-    aoc_mod = AOCMod()
-    aoc_mod.session_id = "test_session_id"
-    aoc_mod.user_agent = "test_user_agent"
-    response = aoc_mod.submit_answer(2023, 1, 1, "test_answer")
+    aoc_mod = AocMod()
+    response = aoc_mod.submit_answer(2023, 1, 1, 12345)
     assert response == "Test Puzzle Answer Response"
+
+
+def test_get_year_and_day_valid_path():
+    filepath = "challenges/2023/day2"
+    filepath2 = "challenges/2022/day23"
+
+    year, day = get_year_and_day(filepath)
+    assert year == 2023 and day == 2
+
+    year, day = get_year_and_day(filepath2)
+    assert year == 2022 and day == 23
+
+
+def test_get_year_and_day_invalid_path():
+    filepath = "random/file/is/here"
+
+    year, day = get_year_and_day(filepath)
+    assert not year and not day
+
+
+def test_parse_input(monkeypatch):
+    def mock_open(file, mode, encoding=None):
+        class ManagedFile:
+            def __init__(self):
+                self.file = None
+
+            def __enter__(self):
+                self.file = MockFile()
+                return self.file
+
+            def __exit__(self, exc_type, exc_value, exc_traceback):
+                pass
+
+        class MockFile:
+            def __init__(self):
+                pass
+
+            def read(self):
+                return "this is some file data for testing"
+
+        return ManagedFile()
+
+    monkeypatch.setattr("builtins.open", mock_open)
+    data = parse_input("random_path")
+
+    assert data[0] == "this is some file data for testing"
