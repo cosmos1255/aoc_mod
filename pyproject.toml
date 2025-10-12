@@ -9,13 +9,13 @@ dependencies = [
     "requests",
     "markdownify",
     "pytest (>=8.4.2,<9.0.0)",
-    "sphinx (>=8.2.3,<9.0.0)",
     "requests-html (>=0.10.0,<0.11.0)",
     "beautifulsoup4 (>=4.14.2,<5.0.0)",
+    "sphinx (>=8.2.3,<9.0.0)",
     "sphinx-autoapi (>=3.6.1,<4.0.0)",
     "sphinxcontrib-programoutput (>=0.18,<0.19)",
-    "bandit (>=1.8.6,<2.0.0)",
     "myst-parser (>=4.0.1,<5.0.0)",
+    "bandit (>=1.8.6,<2.0.0)",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -46,6 +46,12 @@ pythonpath = ["src"]
 
 [dependency-groups]
 dev = ["ruff (>=0.13.3,<0.14.0)"]
+docs = [
+    "sphinx (>=8.2.3,<9.0.0)",
+    "sphinx-autoapi (>=3.6.1,<4.0.0)",
+    "sphinxcontrib-programoutput (>=0.18,<0.19)",
+    "myst-parser (>=4.0.1,<5.0.0)",
+]
 
 [tool.bandit]
 exclude_dirs = ["tests"]
