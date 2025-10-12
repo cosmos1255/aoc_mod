@@ -2,48 +2,8 @@
 Link: https://adventofcode.com/{YEAR}/day/{DAY}"""
 
 import os
-import re
 
-from aoc_mod.utilities import AocMod
-
-
-def get_year_and_day(filepath: str) -> tuple[int, int]:
-    """utility function to get current year and day from the
-    path to this file
-
-    :param filepath: path to this file
-    :type filepath: str
-    :return: a tuple with (year, day) as int values
-    :rtype: tuple[int, int]
-    """
-    head, day_folder = os.path.split(filepath)
-    head, year_folder = os.path.split(head)
-
-    # get the year from the year folder name
-    year_num = int(year_folder)
-
-    # extract the number from the challenge year's day folder name
-    day_num = int(re.findall(r"\d+", day_folder)[0])
-
-    return (year_num, day_num)
-
-
-def parse_input(input_path: str) -> list[str]:
-    """utility function to read in puzzle input and
-    place it into a list of str values
-
-    :param input_path: path to the input file
-    :type input_path: str
-    :return: a list of strings representing the input
-    :rtype: list[str]
-    """
-    # read in input data from file
-    with open(input_path, "r", encoding="utf-8") as f:
-        raw_input = f.read()
-
-    # parse the input data
-    input_data = raw_input.splitlines()
-    return input_data
+from aoc_mod.utilities import AocMod, AocModError, get_year_and_day, parse_input
 
 
 def part_one(parsed_input: list[str]) -> dict[str, int]:
@@ -79,13 +39,20 @@ def part_two(parsed_input: list[str]) -> dict[str, int]:
 def main():
     """main driver function"""
     # set up aoc_mod
-    aoc_mod = AocMod()
+    try:
+        aoc_mod = AocMod()
+    except AocModError as err:
+        print(f"Error occurred while initializing AocMod: {err}")
+        exit(1)
 
     # get current path to file
     current_path_to_file = os.path.dirname(os.path.abspath(__file__))
 
     # get the current year and day and then the input filepath
     year, day = get_year_and_day(current_path_to_file)
+    if not year and not day:
+        exit(1)
+
     input_path = current_path_to_file + f"/input_{day}.txt"
 
     print(f"{year}:Day{day}")

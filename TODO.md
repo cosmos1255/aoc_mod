@@ -24,4 +24,4 @@ AOC_MOD is intended to be a one-size-fits-all library module for Advent of Code 
     - ~~setting up folder structure with puzzle data by year/day~~
 - Windows support for creating challenge files.
 - More file templates to include languages like C/C++, Java, etc.
-- readthedocs website to explain installation and use of the module
+- ~~readthedocs website to explain installation and use of the module~~

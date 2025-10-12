@@ -43,6 +43,4 @@ repository = "https://github.com/cosmos1255/aoc_mod"
 pythonpath = ["src"]
 
 [dependency-groups]
-dev = [
-    "ruff (>=0.13.3,<0.14.0)"
-]
+dev = ["ruff (>=0.13.3,<0.14.0)"]

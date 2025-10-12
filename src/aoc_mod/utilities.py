@@ -1,6 +1,7 @@
 """Utility functionality and AocMod class definitions"""
 
 import os
+import re
 import time
 
 import markdownify
@@ -45,21 +46,19 @@ class AocMod:
             self.session_id = session_id
         else:
             self.session_id = self._get_auth_data()
+            # if not self.session_id:
+            #     raise AocModError("missing environment variable for authentication")
 
     def _get_auth_data(self) -> str:
         """will return the SESSION_ID environment variable, if set
 
-        :raises AocModError: raise an exception if we don't have a
-            SESSION_ID environment variable
-        :return: the SESSION_ID env variable
+        :return: the SESSION_ID env variable or empty string
         :rtype: str
         """
         try:
             return os.environ["SESSION_ID"]
-        except KeyError as err:
-            raise AocModError(
-                "missing environment variable for authentication"
-            ) from err
+        except KeyError:
+            return ""
 
     def _get_current_time(self) -> time.struct_time:
         """get current local time
@@ -87,11 +86,16 @@ class AocMod:
 
         # request the puzzle input for the current year and day
         try:
-            res = requests.get(
-                URL_PUZZLE_MAIN.format(YEAR=year, DAY=day),
-                cookies={"session": self.session_id, "User-Agent": self.user_agent},
-                timeout=5,
-            )
+            if self.session_id:
+                res = requests.get(
+                    URL_PUZZLE_MAIN.format(YEAR=year, DAY=day),
+                    cookies={"session": self.session_id, "User-Agent": self.user_agent},
+                    timeout=5,
+                )
+            else:
+                res = requests.get(
+                    URL_PUZZLE_MAIN.format(YEAR=year, DAY=day), timeout=5
+                )
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
             raise AocModError("http error when getting puzzle instructions") from err
@@ -160,6 +164,13 @@ class AocMod:
         :return: the result from the http post request
         :rtype: str
         """
+
+        # verify that we have a valid session-id, otherwise we can't submit
+        if not self.session_id:
+            raise AocModError(
+                "unable to submit puzzle answer to an unauthenticated session"
+            )
+
         # submit the puzzle answer
         try:
             res = requests.post(
@@ -173,7 +184,7 @@ class AocMod:
             raise AocModError("http error when submitting puzzle answer") from err
         except requests.exceptions.RequestException as err:
             raise AocModError(
-                "an invalid session key or invalid answer during submission"
+                "an invalid session key or invalid answer during submission. "
             ) from err
 
         # run the response output through BeautifulSoup for html parsing
@@ -190,3 +201,46 @@ class AocMod:
         print(markdownify.markdownify(result_content))
 
         return res.text
+
+
+def get_year_and_day(filepath: str) -> tuple[int, int]:
+    """utility function to get current year and day from the
+    path to this file
+
+    :param filepath: path to this file
+    :type filepath: str
+    :return: a tuple with (year, day) as int values. will return (0, 0) on a failure
+    :rtype: tuple[int, int]
+    """
+    head, day_folder = os.path.split(filepath)
+    head, year_folder = os.path.split(head)
+
+    # get the year from the year folder name
+    try:
+        year_num = int(year_folder)
+    except ValueError:
+        print(f"Invalid filepath detected: {filepath}")
+        return (0, 0)
+
+    # extract the number from the challenge year's day folder name
+    day_num = int(re.findall(r"\d+", day_folder)[0])
+
+    return (year_num, day_num)
+
+
+def parse_input(input_path: str) -> list[str]:
+    """utility function to read in puzzle input and
+    place it into a list of str values
+
+    :param input_path: path to the input file
+    :type input_path: str
+    :return: a list of strings representing the input
+    :rtype: list[str]
+    """
+    # read in input data from file
+    with open(input_path, "r", encoding="utf-8") as f:
+        raw_input = f.read()
+
+    # parse the input data
+    input_data = raw_input.splitlines()
+    return input_data

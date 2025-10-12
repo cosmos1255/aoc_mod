@@ -28,3 +28,8 @@ def test_aoc_mod_version():
     result = run_command("aoc-mod --version")
     assert result.returncode == 0
     assert "aoc-mod version" in result.stdout
+
+
+# TODO: write a test for running the "setup" command, passing and failing
+
+# TODO: write a test for running the "submit" command, passing and failing

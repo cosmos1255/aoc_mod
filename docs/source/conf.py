@@ -14,7 +14,7 @@ release = "0.2.0"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["autoapi.extension", 'sphinxcontrib.programoutput']
+extensions = ["autoapi.extension", "sphinxcontrib.programoutput"]
 
 templates_path = ["_templates"]
 exclude_patterns = []

@@ -1,4 +1,4 @@
-name: aoc-mod build/test
+name: aoc-mod build/test/deploy
 on: [push]
 
 jobs:
@@ -7,10 +7,11 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: ["3.11"]
+                python-version: ["3.11", "3.12", "3.13"]
 
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout code
+              uses: actions/checkout@v4
 
             # set up the python version that we'll use
             - name: Set up Python ${{matrix.python-version}}
@@ -47,47 +48,98 @@ jobs:
               run: poetry install --no-root --no-interaction
 
             # install the actual application now
-            - run: poetry install --no-interaction
+            - name: Install app
+              run: poetry install --no-interaction
 
-            # run some tests and linting
-            - run: poetry run ruff check
-            - run: poetry run pytest
+            # build the wheel and create artifacts
+            - name: Build app
+              run: poetry build
 
-    # test-pypi-publish:
-    #     needs: [build]
-    #     name: upload release to TestPyPI
-    #     runs-on: ubuntu-latest
-    #     environment: test_pypi
-    #     permissions:
-    #         # IMPORTANT: this permission is mandatory for trusted publishing
-    #         id-token: write
-    #     steps:
-    #         # retrieve your distributions here
+            - name: Store artifacts from build
+              uses: actions/upload-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
 
-    #         - name: Download archive
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               name: aoc-mod
-    #               path: dist/
-    #         - name: Publish package distributions to PyPI
-    #           uses: pypa/gh-action-pypi-publish@release/v1
+    lint_and_test:
+        needs: [build]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-    # pypi-publish:
-    #     needs: [build]
-    #     name: upload release to PyPI
-    #     runs-on: ubuntu-latest
-    #     if: github.ref == 'refs/heads/main'
-    #     environment: pypi
-    #     permissions:
-    #         # IMPORTANT: this permission is mandatory for trusted publishing
-    #         id-token: write
-    #     steps:
-    #         # retrieve your distributions here
+            - name: Restore caches poetry files
+              uses: actions/cache@v4
+              with:
+                  path: .venv
+                  key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-poetry-
 
-    #         - name: Download archive
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               name: aoc-mod
-    #               path: dist/
-    #         - name: Publish package distributions to PyPI
-    #           uses: pypa/gh-action-pypi-publish@release/v1
+            - name: Run ruff linter
+              run: poetry run ruff check
+
+            - name: Run tests
+              run: poetry run pytest
+
+    build_and_deploy_docs:
+        needs: [build]
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Restore caches poetry files
+              uses: actions/cache@v4
+              with:
+                  path: .venv
+                  key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-poetry-
+
+            - name: Deploy to GitHub Pages (optional)
+              if: github.ref == 'refs/heads/main'
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: docs/build/html
+
+    test-pypi-publish:
+        needs: [build]
+        name: upload release to TestPyPI
+        runs-on: ubuntu-latest
+        environment: test_pypi
+        permissions:
+            # IMPORTANT: this permission is mandatory for trusted publishing
+            id-token: write
+        steps:
+            # retrieve your distributions here
+
+            - name: Download archive
+              uses: actions/download-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
+            - name: Publish package distributions to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+
+    pypi-publish:
+        needs: [build, lint_and_test]
+        name: upload release to PyPI
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        environment: pypi
+        permissions:
+            # IMPORTANT: this permission is mandatory for trusted publishing
+            id-token: write
+        steps:
+            # retrieve your distributions here
+
+            - name: Download archive
+              uses: actions/download-artifact@v4
+              with:
+                  name: aoc-mod
+                  path: dist/
+            - name: Publish package distributions to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
