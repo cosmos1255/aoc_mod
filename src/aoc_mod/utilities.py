@@ -3,6 +3,7 @@
 import os
 import re
 import time
+from pathlib import Path
 
 import markdownify
 import requests
@@ -203,17 +204,17 @@ class AocMod:
         return res.text
 
 
-def get_year_and_day(filepath: str) -> tuple[int, int]:
+def get_year_and_day(filepath: Path) -> tuple[int, int]:
     """utility function to get current year and day from the
     path to this file
 
     :param filepath: path to this file
-    :type filepath: str
+    :type filepath: Path
     :return: a tuple with (year, day) as int values. will return (0, 0) on a failure
     :rtype: tuple[int, int]
     """
-    head, day_folder = os.path.split(filepath)
-    head, year_folder = os.path.split(head)
+    day_folder = filepath.name
+    year_folder = filepath.parent.name
 
     # get the year from the year folder name
     try:
@@ -228,18 +229,18 @@ def get_year_and_day(filepath: str) -> tuple[int, int]:
     return (year_num, day_num)
 
 
-def parse_input(input_path: str) -> list[str]:
+def parse_input(input_path: Path) -> list[str]:
     """utility function to read in puzzle input and
     place it into a list of str values
 
     :param input_path: path to the input file
-    :type input_path: str
+    :type input_path: Path
     :return: a list of strings representing the input
     :rtype: list[str]
     """
     # read in input data from file
-    with open(input_path, "r", encoding="utf-8") as f:
-        raw_input = f.read()
+    with input_path.open("r", encoding="utf-8") as f_in:
+        raw_input = f_in.read()
 
     # parse the input data
     input_data = raw_input.splitlines()

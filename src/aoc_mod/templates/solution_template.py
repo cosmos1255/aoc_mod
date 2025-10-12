@@ -1,9 +1,10 @@
 """Advent of Code {YEAR}, Day: {DAY}
 Link: https://adventofcode.com/{YEAR}/day/{DAY}"""
 
-import os
+from pathlib import Path
 
-from aoc_mod.utilities import AocMod, AocModError, get_year_and_day, parse_input
+from aoc_mod.utilities import (AocMod, AocModError, get_year_and_day,
+                               parse_input)
 
 
 def part_one(parsed_input: list[str]) -> dict[str, int]:
@@ -46,14 +47,14 @@ def main():
         exit(1)
 
     # get current path to file
-    current_path_to_file = os.path.dirname(os.path.abspath(__file__))
+    current_path_to_file = Path(__file__).absolute().parent
 
     # get the current year and day and then the input filepath
     year, day = get_year_and_day(current_path_to_file)
     if not year and not day:
         exit(1)
 
-    input_path = current_path_to_file + f"/input_{day}.txt"
+    input_path = current_path_to_file.joinpath(f"input_day{day}.txt")
 
     print(f"{year}:Day{day}")
 
@@ -81,4 +82,9 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+    main()
+    main()
+    main()
+    main()
     main()

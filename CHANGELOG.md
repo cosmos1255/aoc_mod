@@ -19,6 +19,7 @@ All notable changes to AOC-Mod will be documented in this file.
 - Reworked the build system to use Poetry instead of SetupTools.
 - Updated the Python template to be functioning source code rather than a string for better testing.
 - Update testing to reflect new library changes.
+- Replaced all instances of 'os.path' with 'pathlib.Path' objects for better path management
 
 ### Documentation
 

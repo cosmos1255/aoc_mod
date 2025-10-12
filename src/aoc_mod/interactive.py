@@ -16,25 +16,24 @@ Author: David Eyrich
 
 import argparse
 import importlib.metadata
-import os
+from pathlib import Path
 
 from aoc_mod.utilities import AocMod, AocModError
 
 LOCAL_PUZZLE_FILEPATH = "challenges/{YEAR}/day{DAY}"
+DEFAULT_FILE_TEMPLATE = (
+    Path(__file__).absolute().parent.joinpath("templates/solution_template.py")
+)
 
-cur_file = os.path.abspath(__file__)
-cur_file_parent = os.path.dirname(cur_file)
-DEFAULT_FILE_TEMPLATE = f"{cur_file_parent}/data/templates/solution_template.py"
 
-
-def create_solution_file(filename_in: str, filename_out: str, year: int, day: int):
+def create_solution_file(filename_in: str, day_path: Path, year: int, day: int):
     """read in the template solution file and replace instances of "{YEAR}"
     and "{DAY}" with the corresponding year and day arguments
 
     :param filename_in: path to the input file
     :type filename_in: str
-    :param filename_out: path to the output file
-    :type filename_out: str
+    :param day_path: path to the output directory
+    :type filename_out: Path
     :param year: year that was entered
     :type year: int
     :param day: day that was entered
@@ -42,17 +41,23 @@ def create_solution_file(filename_in: str, filename_out: str, year: int, day: in
     :raises AocModError: if an error occurs with file operations
     """
 
+    temp_in = Path(filename_in)
+    temp_out = day_path.joinpath(f"day{day}.{temp_in.suffix}")
+
+    if temp_out.exists():
+        raise AocModError(f"{year}, Day {day} solution file already exists")
+
     try:
-        with open(filename_in, "r", encoding="utf-8") as f_in:
+        with temp_in.open("r", encoding="utf-8") as f_in:
             data = f_in.read()
 
         data_w_year = data.replace("{YEAR}", f"{year}")
         data_w_year_day = data_w_year.replace("{DAY}", f"{day}")
 
-        with open(filename_out, "w", encoding="utf-8") as f_out:
+        with temp_out.open("w", encoding="utf-8") as f_out:
             f_out.write(data_w_year_day)
     except (OSError, TypeError) as err:
-        raise AocModError("unable to create solution template file") from err
+        raise AocModError("Failed to create solution file") from err
 
 
 def setup_challenge_day_template(
@@ -79,59 +84,55 @@ def setup_challenge_day_template(
     """
 
     # set output directory path (prepend root_dir, if specified)
-    main_path = LOCAL_PUZZLE_FILEPATH.format(YEAR=year, DAY=day)
-    if output_root_dir:
-        day_path = output_root_dir.strip("/") + "/" + main_path
-    else:
-        day_path = main_path
+    day_path = Path(output_root_dir).joinpath(
+        LOCAL_PUZZLE_FILEPATH.format(YEAR=year, DAY=day)
+    )
 
     # set individual file paths
-    solution_path = ""
-    input_path = f"{day_path}/input_{day}.txt"
-    instructions_path = f"{day_path}/instructions_{year}_{day}.md"
-
-    # set solution file path, if entered
-    if template_path:
-        _, ext = os.path.splitext(template_path)
-        if ext:
-            solution_path = f"{day_path}/day{day}{ext}"
+    input_path = day_path.joinpath(f"input_day{day}.txt")
+    instructions_path = day_path.joinpath(f"instructions_day{day}.md")
 
     # attempt to get puzzle input and instructions
     input_data = ""
+    instructions = ""
 
-    os.system(f"mkdir -p {day_path}")
-
-    # create the solution template, input, and instruction files
-    if not os.path.exists(input_path):
+    # get puzzle input data
+    if not input_path.exists():
         try:
             input_data = aoc_mod.get_puzzle_input(year, day)
         except AocModError as err:
             print(f"Failed to get puzzle input for {year}, Day {day} ({err})")
-
-        if input_data:
-            with open(input_path, "w", encoding="utf-8") as f:
-                f.write(input_data)
-            print(f"{year}, Day {day} input file created: {input_path}")
     else:
         print(f"{year}, Day {day} input file already exists.")
 
-    if not os.path.exists(instructions_path):
-        instructions = aoc_mod.get_puzzle_instructions(year, day)
-        if instructions:
-            with open(instructions_path, "w", encoding="utf-8") as f:
-                f.write(instructions)
-            print(f"{year}, Day {day} instructions file created: {instructions_path}")
+    # get instruction input data
+    if not instructions_path.exists():
+        try:
+            instructions = aoc_mod.get_puzzle_instructions(year, day)
+        except AocModError as err:
+            print(f"Failed to get puzzle instructions for {year}, Day {day} ({err})")
     else:
         print(f"{year}, Day {day} instruction file already exists.")
 
-    if not os.path.exists(solution_path):
-        try:
-            create_solution_file(template_path, solution_path, year, day)
-            print(f"{year}, Day {day} solution file created: {solution_path}")
-        except AocModError:
-            print("Failed to create solution template file.")
-    else:
-        print(f"{year}, Day {day} solution file already exists.")
+    # create the challenges directory structure if we have input/instruction data
+    if input_data or instructions:
+        day_path.mkdir(parents=True, exist_ok=True)
+
+    if input_data:
+        with input_path.open("w", encoding="utf-8") as f_out:
+            f_out.write(input_data)
+        print(f"{year}, Day {day} input file created: {input_path}")
+
+    if instructions:
+        with instructions_path.open("w", encoding="utf-8") as f_out:
+            f_out.write(instructions)
+        print(f"{year}, Day {day} instructions file created: {instructions_path}")
+
+    try:
+        create_solution_file(template_path, day_path, year, day)
+        print(f"{year}, Day {day} solution file created.")
+    except AocModError as err:
+        print(err)
 
 
 def file_exists(filepath: str) -> str:
@@ -144,30 +145,13 @@ def file_exists(filepath: str) -> str:
     :return: filepath, once verified
     :rtype: str
     """
-    if not os.path.exists(filepath):
+    path = Path(filepath)
+
+    if not path.exists():
         raise argparse.ArgumentTypeError(f"Error: file '{filepath}' does not exist")
-    if not os.path.isfile(filepath):
+    if not path.is_file():
         raise argparse.ArgumentTypeError(f"Error: '{filepath}' is not a file")
     return filepath
-
-
-def directory_exists(dir_path: str) -> str:
-    """verify that a directory exists for an argparse argument
-
-    :param dir_path: path to directory
-    :type dir_path: str
-    :raises argparse.ArgumentTypeError: raise if directory doesn't exist or
-        dir_path is not a directory
-    :return: dir_path, once verified
-    :rtype: str
-    """
-    if not os.path.exists(dir_path):
-        raise argparse.ArgumentTypeError(
-            f"Error: directory '{dir_path}' does not exist"
-        )
-    if not os.path.isdir(dir_path):
-        raise argparse.ArgumentTypeError(f"Error: '{dir_path}' is not a directory")
-    return dir_path
 
 
 def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
@@ -221,7 +205,8 @@ def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
     setup_parser.add_argument(
         "-o",
         "--output-root-dir",
-        type=directory_exists,
+        type=str,
+        default="",
         help="root path where the 'challenges' folder structure will be created",
     )
 
