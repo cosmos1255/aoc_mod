@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import requests
 
 from aoc_mod.utilities import AocMod, get_year_and_day, parse_input
@@ -73,8 +75,8 @@ def test_submit_answer(monkeypatch):
 
 
 def test_get_year_and_day_valid_path():
-    filepath = "challenges/2023/day2"
-    filepath2 = "challenges/2022/day23"
+    filepath = Path("challenges/2023/day2")
+    filepath2 = Path("challenges/2022/day23")
 
     year, day = get_year_and_day(filepath)
     assert year == 2023 and day == 2
@@ -84,7 +86,7 @@ def test_get_year_and_day_valid_path():
 
 
 def test_get_year_and_day_invalid_path():
-    filepath = "random/file/is/here"
+    filepath = Path("random/file/is/here")
 
     year, day = get_year_and_day(filepath)
     assert not year and not day
@@ -112,7 +114,7 @@ def test_parse_input(monkeypatch):
 
         return ManagedFile()
 
-    monkeypatch.setattr("builtins.open", mock_open)
-    data = parse_input("random_path")
+    monkeypatch.setattr(Path, "open", mock_open)
+    data = parse_input(Path("random_path"))
 
     assert data[0] == "this is some file data for testing"

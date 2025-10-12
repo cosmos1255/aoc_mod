@@ -1,4 +1,4 @@
-name: aoc-mod build/test/deploy
+name: aoc-mod
 on: [push]
 
 jobs:
