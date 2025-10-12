@@ -1,160 +1,136 @@
-"""Main AOCMod class definition"""
+"""Utility functionality and AocMod class definitions"""
 
 import os
-import logging
+import re
 import time
-import requests
-import markdownify
-from bs4 import BeautifulSoup
+from pathlib import Path
 
-LOGGER = logging.getLogger(__name__)
+import markdownify
+import requests
+from bs4 import BeautifulSoup
 
 URL_PUZZLE_MAIN = "https://adventofcode.com/{YEAR}/day/{DAY}"
 URL_PUZZLE_INPUT = f"{URL_PUZZLE_MAIN}/input"
 URL_PUZZLE_ANSWER = f"{URL_PUZZLE_MAIN}/answer"
 
 
-class AOCMod:
-    def __init__(self):
-        """Initialize the AOCMod class and set up the current time and authentication variables."""
-        self.current_time = self.get_current_date()
-        self.session_id = ""
+class AocModError(Exception):
+    """General exception for an AOC_MOD library error"""
+
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class AocMod:
+    """Main utility class for the AOC_MOD library"""
+
+    def __init__(self, session_id: str = ""):
+        """initialize AocMod class with time and auth data
+
+        :param session_id: session-id from browser after logging into
+            Advent of Code, defaults to ""
+        :type session_id: str, optional
+        :param year: year of AoC for puzzle data, defaults to 0
+        :type year: int, optional
+        :param day: day of AoC for puzzle data, defaults to 0
+        :type day: int, optional
+        :raises AocModError: will fail on invalid year/day or invalid
+            auth data (session-id)
+        """
+        # set the current time
+        self.curr_time = self._get_current_time()
+
+        # set the authentication data for requests
         self.user_agent = requests.utils.default_headers()["User-Agent"]
 
-    def set_auth_variables(self):
-        """Set the authentication variables from environment variables."""
+        if session_id:
+            self.session_id = session_id
+        else:
+            self.session_id = self._get_auth_data()
+            # if not self.session_id:
+            #     raise AocModError("missing environment variable for authentication")
+
+    def _get_auth_data(self) -> str:
+        """will return the SESSION_ID environment variable, if set
+
+        :return: the SESSION_ID env variable or empty string
+        :rtype: str
+        """
         try:
-            self.session_id = os.environ["SESSION_ID"]
-        except KeyError as exc:
-            LOGGER.warning(
-                "missing environment variable for authentication (%s)", str(exc)
-            )
+            return os.environ["SESSION_ID"]
+        except KeyError:
+            return ""
 
-    def get_current_date(self):
-        """Get the current local time.
+    def _get_current_time(self) -> time.struct_time:
+        """get current local time
 
-        Returns:
-            time.struct_time: The current local time.
+        :return: current local time
+        :rtype: time.struct_time
         """
         return time.localtime(time.time())
 
-    def verify_correct_date(self, year: int, month: int, day: int):
-        """Verify if the provided date is valid for Advent of Code.
+    def get_puzzle_instructions(self, year: int, day: int) -> str:
+        """get puzzle instructions for the entered (or current) year and day
 
-        Args:
-            year (int): The year to verify.
-            month (int): The month to verify.
-            day (int): The day to verify.
-
-        Returns:
-            bool: True if the date is valid, False otherwise.
+        :param year: year of AoC puzzle, defaults to current
+        :type year: int
+        :param day: day of AoC puzzle, defaults to current
+        :type day: int
+        :raises AocModError: exception if we http request throws an error
+        :return: markdownify output string of puzzle instructions
+        :rtype: str
         """
-        if month != 12:
-            return False
-        if day < 1 or day > 25:
-            return False
-        if year < 2015 or year > self.current_time.tm_year:
-            return False
-        return True
-
-    def get_puzzle_instructions(self, year: int = None, day: int = None):
-        """Get the puzzle instructions for the specified year and day.
-
-        Args:
-            year (int): The year of the puzzle. Defaults to the current year.
-            day (int): The day of the puzzle. Defaults to the current day.
-
-        Returns:
-            str: The puzzle instructions in markdown format.
-        """
-        # this is an authenticated method
-        self.set_auth_variables()
-
         # if this function wasn't provided with a date, get current year, day
-        if year is None or day is None:
-            year = self.current_time.tm_year
-            month = self.current_time.tm_mon
-            day = self.current_time.tm_mday
-        else:
-            month = 12
-            year = int(year)
-            day = int(day)
-
-        # check current date (for better error reporting)
-        if not self.verify_correct_date(year, month, day):
-            if month == 12:
-                LOGGER.error(
-                    "unable to grab puzzle instructions due to invalid year and day input (year: %d, day: %d)",
-                    year,
-                    day,
-                )
-            else:
-                LOGGER.error(
-                    "it is not December yet, please try again in December or manually enter the desired year and day"
-                )
-            return None
+        if not year or not day:
+            year = self.curr_time.tm_year
+            day = self.curr_time.tm_mday
 
         # request the puzzle input for the current year and day
         try:
-            res = requests.get(
-                URL_PUZZLE_MAIN.format(YEAR=year, DAY=day),
-                cookies={"session": self.session_id, "User-Agent": self.user_agent},
-                timeout=5,
-            )
+            if self.session_id:
+                res = requests.get(
+                    URL_PUZZLE_MAIN.format(YEAR=year, DAY=day),
+                    cookies={"session": self.session_id, "User-Agent": self.user_agent},
+                    timeout=5,
+                )
+            else:
+                res = requests.get(
+                    URL_PUZZLE_MAIN.format(YEAR=year, DAY=day), timeout=5
+                )
             res.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            LOGGER.error("HTTP Error (%s)", errh.args[0])
-            return None
+        except requests.exceptions.HTTPError as err:
+            raise AocModError("http error when getting puzzle instructions") from err
 
         # run the instruction output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
 
         result_content = ""
-        for entry in soup.main.contents:
-            if len(str(entry).strip()) == 0:
+        for entry in soup.main.contents:  # type: ignore
+            line = str(entry).strip()
+            if not line:
                 continue
 
-            result_content += str(entry).strip()
+            result_content += line
 
         # turn the instructions into markdown
         return markdownify.markdownify(result_content)
 
-    def get_puzzle_input(self, year: int = None, day: int = None):
-        """Get the puzzle input for the specified year and day.
+    def get_puzzle_input(self, year: int = 0, day: int = 0) -> str:
+        """get puzzle input for specified year and day
 
-        Args:
-            year (int): The year of the puzzle. Defaults to the current year.
-            day (int): The day of the puzzle. Defaults to the current day.
-
-        Returns:
-            str: The puzzle input.
+        :param year: yeah of the puzzle, defaults to 0
+        :type year: int, optional
+        :param day: day of the puzzle, defaults to 0
+        :type day: int, optional
+        :raises AocModError: will raise for http request error or a
+            request exception
+        :return: the puzzle input as a string
+        :rtype: str
         """
-        # this is an authenticated method
-        self.set_auth_variables()
-
         # if this function wasn't provided with a date, get current year, day
-        if year is None or day is None:
-            year = self.current_time.tm_year
-            month = self.current_time.tm_mon
-            day = self.current_time.tm_mday
-        else:
-            month = 12
-            year = int(year)
-            day = int(day)
-
-        # check current date (for better error reporting)
-        if not self.verify_correct_date(year, month, day):
-            if month == 12:
-                LOGGER.error(
-                    "unable to grab puzzle input due to invalid year and day input (year: %d, day: %d)",
-                    year,
-                    day,
-                )
-            else:  # only enters this section if we are in the current year and not December
-                LOGGER.error(
-                    "it is not December yet, please try again in December or manually enter the desired year and day"
-                )
-            return None
+        if not year or not day:
+            year = self.curr_time.tm_year
+            day = self.curr_time.tm_mday
 
         # request the puzzle input for the current year and day
         try:
@@ -164,42 +140,37 @@ class AOCMod:
                 timeout=5,
             )
             res.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            LOGGER.error("HTTP Error (%s)", errh.args[0])
-            return None
+        except requests.exceptions.HTTPError as err:
+            raise AocModError("http error when getting puzzle input") from err
         except requests.exceptions.RequestException as err:
-            LOGGER.error("Request Exception (%s)", err.args[0])
-            return None
+            raise AocModError(
+                "it is likely that an invalid session key was provided when getting puzzle input"
+            ) from err
 
         return res.text.strip()
 
-    def submit_answer(self, year: int, day: int, level: int, answer):
-        """Submit the puzzle answer for the specified year, day, and level.
+    def submit_answer(self, year: int, day: int, level: int, answer: int) -> str:
+        """submit puzzle answer for the year, day and level (part)
 
-        Args:
-            year (int): The year of the puzzle.
-            day (int): The day of the puzzle.
-            level (int): The level of the puzzle (1 or 2).
-            answer (str): The answer to submit.
-
-        Returns:
-            str: The response from the server.
+        :param year: year of the puzzle
+        :type year: int
+        :param day: day of the puzzle
+        :type day: int
+        :param level: puzzle level or part (either 1 or 2)
+        :type level: int
+        :param answer: the answer to be submitted
+        :type answer: int
+        :raises AocModError: will raise for http request error or a
+            request exception
+        :return: the result from the http post request
+        :rtype: str
         """
-        # this is an authenticated method
-        self.set_auth_variables()
 
-        # just in case the year and day are not integers
-        year = int(year)
-        day = int(day)
-
-        # check current date (for better error reporting)
-        if not self.verify_correct_date(year, 12, day):
-            LOGGER.error(
-                "unable to submit puzzle answer due to invalid year and day input (year: %d, day: %d)",
-                year,
-                day,
+        # verify that we have a valid session-id, otherwise we can't submit
+        if not self.session_id:
+            raise AocModError(
+                "unable to submit puzzle answer to an unauthenticated session"
             )
-            return None
 
         # submit the puzzle answer
         try:
@@ -210,23 +181,67 @@ class AOCMod:
                 timeout=5,
             )
             res.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            LOGGER.error("HTTP Error (%s)", errh.args[0])
-            return None
+        except requests.exceptions.HTTPError as err:
+            raise AocModError("http error when submitting puzzle answer") from err
         except requests.exceptions.RequestException as err:
-            LOGGER.error("Request Exception (%s)", err.args[0])
-            return None
+            raise AocModError(
+                "an invalid session key or invalid answer during submission. "
+            ) from err
 
         # run the response output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
 
-        for entry in soup.article.contents:
-            if len(str(entry)) == 0:
+        for entry in soup.article.contents:  # type: ignore
+            line = str(entry)
+            if not line:
                 continue
 
-            result_content = str(entry)
+            result_content = line
             break
 
         print(markdownify.markdownify(result_content))
 
         return res.text
+
+
+def get_year_and_day(filepath: Path) -> tuple[int, int]:
+    """utility function to get current year and day from the
+    path to this file
+
+    :param filepath: path to this file
+    :type filepath: Path
+    :return: a tuple with (year, day) as int values. will return (0, 0) on a failure
+    :rtype: tuple[int, int]
+    """
+    day_folder = filepath.name
+    year_folder = filepath.parent.name
+
+    # get the year from the year folder name
+    try:
+        year_num = int(year_folder)
+    except ValueError:
+        print(f"Invalid filepath detected: {filepath}")
+        return (0, 0)
+
+    # extract the number from the challenge year's day folder name
+    day_num = int(re.findall(r"\d+", day_folder)[0])
+
+    return (year_num, day_num)
+
+
+def parse_input(input_path: Path) -> list[str]:
+    """utility function to read in puzzle input and
+    place it into a list of str values
+
+    :param input_path: path to the input file
+    :type input_path: Path
+    :return: a list of strings representing the input
+    :rtype: list[str]
+    """
+    # read in input data from file
+    with input_path.open("r", encoding="utf-8") as f_in:
+        raw_input = f_in.read()
+
+    # parse the input data
+    input_data = raw_input.splitlines()
+    return input_data

@@ -3,7 +3,9 @@ import subprocess
 
 def run_command(command):
     """Run a command in the shell and return the output."""
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(
+        command, shell=True, capture_output=True, text=True, check=False
+    )
     return result
 
 

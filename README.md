@@ -1,159 +1,81 @@
 # Advent of Code Module
 
-A library for Advent of Code containing utilities to use while solving problems! If any issues or bugs are discovered, please submit an issue and I'll fix it!
+[![aoc-mod](https://github.com/cosmos1255/aoc_mod/actions/workflows/build_wheel.yml/badge.svg)](https://github.com/cosmos1255/aoc_mod/actions/workflows/build_wheel.yml)
 
-## Installation and basic use
+A library for Advent of Code containing utilities to use while solving problems!
 
-To install, simply run the following command.
+If any issues or bugs are discovered, please submit an issue and I'll fix it!
 
-```sh
-pip install aoc-mod
-```
+## About
 
-AOC Mod can be used interactively from the command line or as a library to import into your Advent of Code challenge solutions with Python.
+The design of this project is meant to facilitate the full problem solution flow of Advent of Code puzzles without ever having to utilize the web browser (after the initial step of authenticating with Advent of Code and getting the session id, of course).
 
-You may follow the sections below to either utilize the command-line utility or see this example for using the library programmatically.
+## Installation with Poetry
 
-```py
-from aoc_mod.utilites import AOCMod
-
-aoc_mod = AOCMod()
-
-puzz_input = aoc_mod.get_puzzle_input({YEAR}, {DAY})
-instructions = aoc_mod.get_puzzle_instructions({YEAR}, {DAY})
-
-sol = do_the_solution_p1()
-
-aoc_mod.submit_answer({YEAR}, {DAY}, 1, sol)
-```
-
-
-## How to set the session ID environment variable
-
-To grab puzzle instructions and input or submit an answer, you'll need the to store session ID from your login to Advent of Code as an environment variable.
+The build system has been updated to utilize poetry for installation, building, and dependency management. To install/build locally, install the poetry build system through `pipx`.
 
 ```sh
-export SESSION_ID=cbef2304aaa12390fbc7absc3892 
+# install pipx
+sudo apt install pipx
+
+# install poetry
+pipx install poetry
 ```
 
-## Usage `aoc-mod`
+Once poetry is installed, the following commands can be used to install, build, and run unit tests locally.
 
 ```sh
-usage: aoc-mod [-h] [--debug] {setup,submit} ...
+# install the library
+poetry install
 
-positional arguments:
-  {setup,submit}
-    setup         Initiate the setup of the files for AoC.
-    submit        Initiate a submission of the answer for an AoC problem.
+# build a wheel
+poetry build
 
-options:
-  -h, --help      show this help message and exit
-  --debug         Enable debug print statements.
+# run the tests
+poetry run pytest
 ```
 
-### Usage `aoc-mod setup`
+Formatting and linting is also available through `ruff`.
 
 ```sh
-usage: aoc-mod setup [-h] [-d YEAR:DAY]
+# run a linter check
+poetry run ruff check
 
-options:
-  -h, --help            show this help message and exit
-  -d YEAR:DAY, --date YEAR:DAY
-                        Enter the year and day of the Advent of Code challenge you would like.
+# run a linter check and correct issues
+poetry run ruff check --fix
+
+# format the code
+poetry run ruff format
 ```
 
-### Usage `aoc-mod submit`
+Some vulnerability scanning is also available with `bandit`.
 
 ```sh
-usage: aoc-mod submit [-h] -a ANSWER -l {1,2} -d YEAR:DAY
-
-options:
-  -h, --help            show this help message and exit
-  -a ANSWER, --answer ANSWER
-                        Answer to submit.
-  -l {1,2}, --level {1,2}
-                        Part A = 1; Part B = 2
-  -d YEAR:DAY, --date YEAR:DAY
-                        Enter the year and day of the Advent of Code challenge you would like.
+poetry run bandit -c pyproject.toml -r .
 ```
 
-## Class: AOCMod
+## Documentation
 
-#### __init__(self)
+The documentation is managed and built using Sphinx through the Poetry build system. To build the documentation and open it, run the following commands:
 
-Initialize the AOCMod class and set up the current time and authentication variables.
-
-#### set_auth_variables(self)
-
-Set the authentication variables from environment variables.
-
-#### get_current_date(self)
-
-Get the current local time.
-
-**Returns:**
-- time.struct_time: The current local time.
-
-#### verify_correct_date(self, year: int, month: int, day: int)
-
-Verify if the provided date is valid for Advent of Code.
-
-**Args:**
-- year (int): The year to verify.
-- month (int): The month to verify.
-- day (int): The day to verify.
-
-**Returns:**
-- `bool`: True if the date is valid, False otherwise.
-
-### Constants
-
-#### URL_PUZZLE_MAIN
-
-The main URL template for Advent of Code puzzles.
-
-#### URL_PUZZLE_INPUT
-
-The URL template for Advent of Code puzzle input.
-
-#### URL_PUZZLE_ANSWER
-
-The URL template for Advent of Code puzzle answer submission.
-
-### Logging
-
-#### LOGGER
-
-A logger instance for the module.
-
-### Dependencies
-
-- os
-- logging
-- time
-- requests
-- markdownify
-- bs4.BeautifulSoup
-
-## Contributing
-
-If you feel that you have new features to contribute, don't hesitate to submit a pull request!
-
-### How to build `aoc-mod`
-
-```sh
-$(realpath `which python3`) -m venv .venv
-source .venv/bin/activate
-
-pip install -e .[build,test]
-
-python -m build
+```bash
+poetry run sphinx-build -M html docs/source/ docs/build/
+firefox docs/build/html/index.html
 ```
 
-### How to test `aoc-mod`
+## Getting and Using the SESSION_ID
 
-After following the build steps, run `pytest`.
+The `SESSION_ID` is necessary to perform advanced operations like getting puzzle input and
+submitting puzzle answers. Without this variable, the only operations available are getting basic
+puzzle instructions and setting up a solution template file.
 
-```sh
-pytest -vv
-```
+| Feature | `session-id` | no `session-id` |
+|:--:|:--:|:--:|
+| Get puzzle instructions | full support | partial support |
+| Get puzzle input | full support | no support |
+| Submit puzzle solutions | full support | no support |
+| Setup puzzle solution folder | full support | full support |
+
+In order to obtain this variable, authenticate with <https://adventofcode.com> and then press `F12` in the browser and navigate to the Application or Storage Tabs, if they exist, and search the cookies for the `session` or `sessionid` value.
+
+**NOTE: The session id value is a unique key for your own authenticated session with Advent of Code. You should protect it like a password and never share it (i.e. never push a session id to GitHub or store in an insecure location).**
