@@ -42,7 +42,7 @@ def create_solution_file(filename_in: str, day_path: Path, year: int, day: int):
     """
 
     temp_in = Path(filename_in)
-    temp_out = day_path.joinpath(f"day{day}.{temp_in.suffix}")
+    temp_out = day_path.joinpath(f"day{day}{temp_in.suffix}")
 
     if temp_out.exists():
         raise AocModError(f"{year}, Day {day} solution file already exists")
@@ -56,6 +56,7 @@ def create_solution_file(filename_in: str, day_path: Path, year: int, day: int):
 
         with temp_out.open("w", encoding="utf-8") as f_out:
             f_out.write(data_w_year_day)
+        print(f"{year}, Day {day} solution file created: {temp_out}")
     except (OSError, TypeError) as err:
         raise AocModError("Failed to create solution file") from err
 
@@ -130,7 +131,6 @@ def setup_challenge_day_template(
 
     try:
         create_solution_file(template_path, day_path, year, day)
-        print(f"{year}, Day {day} solution file created.")
     except AocModError as err:
         print(err)
 

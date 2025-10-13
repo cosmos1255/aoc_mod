@@ -2,7 +2,11 @@
 
 All notable changes to AOC-Mod will be documented in this file.
 
-## [Unreleased]
+## [0.2.2] - Unreleased
+
+### Fixed
+
+- Issue with solution file creation where the solution template would be created with an extra period before the extension.
 
 ## [0.2.0] - 2025-10-12
 
