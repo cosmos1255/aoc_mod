@@ -3,8 +3,7 @@ Link: https://adventofcode.com/{YEAR}/day/{DAY}"""
 
 from pathlib import Path
 
-from aoc_mod.utilities import (AocMod, AocModError, get_year_and_day,
-                               parse_input)
+from aoc_mod.utilities import AocMod, AocModError, get_year_and_day, parse_input
 
 
 def part_one(parsed_input: list[str]) -> dict[str, int]:
@@ -63,7 +62,11 @@ def main():
 
     # submit part one, if ready
     if answer_one["submit"]:
-        result = aoc_mod.submit_answer(year, day, 1, answer_one["result"])
+        try:
+            result = aoc_mod.submit_answer(year, day, 1, answer_one["result"])
+        except AocModError as err:
+            print(f"Error occurred while submitting part one answer: {err}")
+            exit(1)
 
         # if we get the correct answer for part one, we'll retrieve the instructions for part two
         if "That's the right answer" in result:
@@ -74,7 +77,11 @@ def main():
 
     # submit part two, if ready
     if answer_two["submit"]:
-        result = aoc_mod.submit_answer(year, day, 2, answer_two["result"])
+        try:
+            result = aoc_mod.submit_answer(year, day, 2, answer_two["result"])
+        except AocModError as err:
+            print(f"Error occurred while submitting part two answer: {err}")
+            exit(1)
 
         # if we get the correct answer for part two, we'll retrieve the rest of the instructions
         if "That's the right answer" in result:
@@ -82,9 +89,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    main()
-    main()
-    main()
-    main()
     main()

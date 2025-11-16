@@ -14,6 +14,8 @@ desired tweaks to ensure proper functionality.
 Author: David Eyrich
 """
 
+import os
+import sys
 import argparse
 import importlib.metadata
 from pathlib import Path
@@ -118,6 +120,11 @@ def setup_challenge_day_template(
     # create the challenges directory structure if we have input/instruction data
     if input_data or instructions:
         day_path.mkdir(parents=True, exist_ok=True)
+    else:
+        print(
+            f"No input or instructions to create for {year}, Day {day}. It may be too early!"
+        )
+        return
 
     if input_data:
         with input_path.open("w", encoding="utf-8") as f_out:
@@ -129,6 +136,7 @@ def setup_challenge_day_template(
             f_out.write(instructions)
         print(f"{year}, Day {day} instructions file created: {instructions_path}")
 
+    # create the solution file from the template, if specified
     try:
         create_solution_file(template_path, day_path, year, day)
     except AocModError as err:
@@ -154,7 +162,7 @@ def file_exists(filepath: str) -> str:
     return filepath
 
 
-def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
+def get_argument_parser() -> argparse.ArgumentParser:
     """create an argument parser and parse user args
 
     :return: parser.parse_known_args() return value
@@ -181,14 +189,10 @@ def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
         type=int,
         help="day of the puzzle",
     )
-    parser.add_argument(
-        "-s",
-        "--session-id",
-        type=str,
-        help="session-id from an authenticated Advent of Code browser session",
-    )
 
-    subparsers = parser.add_subparsers(required=True)
+    subparsers = parser.add_subparsers(
+        dest="command", help="run with '{setup, submit} -h' for more info"
+    )
 
     ### define setup arguments ###
 
@@ -227,17 +231,36 @@ def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
         required=True,
     )
 
-    return parser.parse_known_args()
+    return parser
 
 
 def interactive():
     """Entry-point to the aoc-mod program"""
 
-    known_opts, _ = parse_arguments()
+    parser = get_argument_parser()
+
+    # parse known args first
+    _known_opts, _unknown_opts = parser.parse_known_args()
+
+    # this second parse is necessary to properly non-subparser options after subparsers
+    known_opts = parser.parse_args(_unknown_opts, _known_opts)
+
+    if not known_opts.command:
+        parser.print_usage(file=sys.stderr)
+        print(
+            "aoc-mod: error: the following arguments are required: [setup|submit]",
+            file=sys.stderr,
+        )
+        exit(2)
+
+    # get the session id from the environment variable
+    session_id = os.environ.get("SESSION_ID", "")
+    if not session_id:
+        print("Warning: SESSION_ID environment variable not set.")
 
     # create an AOCMod class instance
     try:
-        aoc_mod = AocMod(session_id=known_opts.session_id)
+        aoc_mod = AocMod(session_id=session_id)
     except AocModError as err:
         print(f"Error: could not initialize AocMod ({err})")
         exit(1)
@@ -253,7 +276,7 @@ def interactive():
     print(f"Year: {year}\tDay: {day}")
 
     # if we are submitting, let's do it, otherwise we'll setup the template
-    if "answer" in known_opts and "part" in known_opts:
+    if known_opts.command == "submit":
         print(f"Answer: {known_opts.answer}\tLevel: {known_opts.part}")
 
         # attempt to submit the answer

@@ -6,11 +6,37 @@ A library for Advent of Code containing utilities to use while solving problems!
 
 If any issues or bugs are discovered, please submit an issue and I'll fix it!
 
-## About
+## Install and use the CLI `aoc-mod`
 
-The design of this project is meant to facilitate the full problem solution flow of Advent of Code puzzles without ever having to utilize the web browser (after the initial step of authenticating with Advent of Code and getting the session id, of course).
+```sh
+pip install aoc-mod
+```
 
-## Installation with Poetry
+## Run the `aoc-mod` script
+
+To enable full functionality of this script, set an environment variable named `SESSION_ID` with your authenticated session ID from the browser (see [getting and using the session ID](#getting-and-using-the-session_id)).
+
+```sh
+# access the help menu
+aoc-mod -h
+
+# optional: set the session ID to enable full functionality
+# on Linux:
+export SESSION_ID=[session-id]
+# on Windows:
+set SESSION_ID=[session-id]
+
+# get puzzle instructions and set up a Python file for solving for the current day
+aoc-mod setup
+
+# setup the project for a specific day
+aoc-mod -y 2024 -d 2 setup
+
+# submit a challenge (2024, day 2, part A)
+aoc-mod -y 2024 -d 2 submit -a [answer] -p 1
+```
+
+## Installation with Poetry for development
 
 The build system has been updated to utilize poetry for installation, building, and dependency management. To install/build locally, install the poetry build system through `pipx`.
 
