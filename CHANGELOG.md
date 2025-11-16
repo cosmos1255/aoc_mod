@@ -4,9 +4,19 @@ All notable changes to AOC-Mod will be documented in this file.
 
 ## [0.2.2] - 2025-11-16
 
+### Changed
+
+- Decided to remove the command-line argument for session ID as it's just better practice to set the environment variable rather than running each CLI command with the session ID exposed in the terminal.
+- Error print outs in the CLI are more descriptive now.
+
 ### Fixed
 
 - Issue with solution file creation where the solution template would be created with an extra period before the extension.
+- Argument parsing was corrected to include CLI inputs like `aoc-mod setup -y [year] -d [day]`. Before, this command would have resulted in a failure because by default, non-subparser commands must precede subparser commands. Now we parse commands twice (once with parse_known_args() and a second time with parse_args(unknown, known)) to ensure that we parse all available arguments.
+
+### Documentation
+
+- Updated README to include information about running the CLI (this is also included elsewhere but the README will probably be viewed more often than the readthedocs page.)
 
 ## [0.2.1] - 2025-10-12
 
