@@ -29,3 +29,5 @@ autoapi_dirs = ["../../src/aoc_mod"]
 autoapi_ignore = ["*/templates/*"]
 
 source_suffix = {".rst": "restructuredtext", ".txt": "markdown", ".md": "markdown"}
+
+myst_heading_anchors = 3
