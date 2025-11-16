@@ -60,7 +60,7 @@ class AocMod:
         # if the cache file is empty, initialize it with the default cache data
         try:
             self._cache_data = pickle.loads(bytes.fromhex(self._cache_file.read_text()))
-        except EOFError as err:
+        except EOFError:
             self._cache_file.write_text(pickle.dumps(self._cache_data).hex())
 
         self._time_to_wait_after_pull = 120  # seconds to wait after pulling input or instructions before allowing another pull
@@ -89,7 +89,7 @@ class AocMod:
         """
         try:
             return pickle.loads(bytes.fromhex(self._cache_file.read_text()))
-        except EOFError as err:
+        except EOFError:
             # cache file is empty, return default cache data
             return {
                 "last_input_pull": None,
@@ -110,7 +110,7 @@ class AocMod:
 
         :param last_pull_time: the time of the last pull in seconds since epoch
         :type last_pull_time: float
-        :return: a tuple of (is_timed_out, timed_out_seconds_left) where is_timed_out is a boolean indicating 
+        :return: a tuple of (is_timed_out, timed_out_seconds_left) where is_timed_out is a boolean indicating
             if the request is timed out and timed_out_seconds_left is the number of seconds left until the timeout expires
         :rtype: tuple[bool, int]
         """
