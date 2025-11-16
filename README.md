@@ -6,6 +6,15 @@ A library for Advent of Code containing utilities to use while solving problems!
 
 If any issues or bugs are discovered, please submit an issue and I'll fix it!
 
+## Automation notice for Advent of Code
+
+This library follows the automation guidelines on the `/r/adventofcode` [community wiki](https://www.reddit.com/r/adventofcode/wiki/faqs/automation). Specifically:
+
+- A maximum of 2 outbound calls will be made for each run of the `aoc-mod` setup and submission features.
+- There will be a 2 minute timeout between setup and submission requests.
+- Once puzzle input and instructions are retrieved for a given puzzle day, they will be stored locally and then not pulled again for that day.
+- The `User Agent` contains a link to this repository and my GitHub username. I am the sole maintainer of this library.
+
 ## Install and use the CLI `aoc-mod`
 
 ```sh

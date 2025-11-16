@@ -122,7 +122,7 @@ def setup_challenge_day_template(
         day_path.mkdir(parents=True, exist_ok=True)
     else:
         print(
-            f"No input or instructions to create for {year}, Day {day}. It may be too early!"
+            f"Failed to get input or instructions for {year}, Day {day}, skipping file creation."
         )
         return
 

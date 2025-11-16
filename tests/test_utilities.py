@@ -33,6 +33,11 @@ def test_get_puzzle_instructions(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
     aoc_mod = AocMod()
+
+    # overwrite the timeouts for testing
+    aoc_mod._cache_data = {"last_instruction_pull": 0}
+    aoc_mod._set_cache_data(aoc_mod._cache_data)
+
     instructions = aoc_mod.get_puzzle_instructions(2023, 1)
     assert "Test Puzzle Instructions" in instructions
 
@@ -51,6 +56,11 @@ def test_get_puzzle_input(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "get", mock_get)
     aoc_mod = AocMod()
+
+    # overwrite the timeouts for testing
+    aoc_mod._cache_data = {"last_input_pull": 0}
+    aoc_mod._set_cache_data(aoc_mod._cache_data)
+
     puzzle_input = aoc_mod.get_puzzle_input(2023, 1)
     assert puzzle_input == "Test Puzzle Input"
 
@@ -70,6 +80,11 @@ def test_submit_answer(monkeypatch):
     monkeypatch.setenv("SESSION_ID", "test_session_id")
     monkeypatch.setattr(requests, "post", mock_post)
     aoc_mod = AocMod()
+
+    # overwrite the timeouts for testing
+    aoc_mod._cache_data = {"last_submission_push": 0}
+    aoc_mod._set_cache_data(aoc_mod._cache_data)
+
     response = aoc_mod.submit_answer(2023, 1, 1, 12345)
     assert response == "Test Puzzle Answer Response"
 
