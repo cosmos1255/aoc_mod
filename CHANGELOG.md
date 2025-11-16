@@ -2,7 +2,7 @@
 
 All notable changes to AOC-Mod will be documented in this file.
 
-## [0.2.2] - Unreleased
+## [0.2.2] - 2025-11-16
 
 ### Fixed
 
