@@ -47,8 +47,6 @@ class AocMod:
             self.session_id = session_id
         else:
             self.session_id = self._get_auth_data()
-            # if not self.session_id:
-            #     raise AocModError("missing environment variable for authentication")
 
     def _get_auth_data(self) -> str:
         """will return the SESSION_ID environment variable, if set
@@ -56,10 +54,7 @@ class AocMod:
         :return: the SESSION_ID env variable or empty string
         :rtype: str
         """
-        try:
-            return os.environ["SESSION_ID"]
-        except KeyError:
-            return ""
+        return os.environ.get("SESSION_ID", "")
 
     def _get_current_time(self) -> time.struct_time:
         """get current local time
@@ -99,7 +94,9 @@ class AocMod:
                 )
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            raise AocModError("http error when getting puzzle instructions") from err
+            raise AocModError(
+                "http error when getting puzzle instructions (check session-id)"
+            ) from err
 
         # run the instruction output through BeautifulSoup for html parsing
         soup = BeautifulSoup(res.content, "html.parser")
@@ -141,7 +138,9 @@ class AocMod:
             )
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            raise AocModError("http error when getting puzzle input") from err
+            raise AocModError(
+                "http error when getting puzzle input (check session-id)"
+            ) from err
         except requests.exceptions.RequestException as err:
             raise AocModError(
                 "it is likely that an invalid session key was provided when getting puzzle input"
@@ -182,7 +181,9 @@ class AocMod:
             )
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            raise AocModError("http error when submitting puzzle answer") from err
+            raise AocModError(
+                "http error when submitting puzzle answer (check session-id)"
+            ) from err
         except requests.exceptions.RequestException as err:
             raise AocModError(
                 "an invalid session key or invalid answer during submission. "
@@ -239,8 +240,11 @@ def parse_input(input_path: Path) -> list[str]:
     :rtype: list[str]
     """
     # read in input data from file
-    with input_path.open("r", encoding="utf-8") as f_in:
-        raw_input = f_in.read()
+    try:
+        with input_path.open("r", encoding="utf-8") as f_in:
+            raw_input = f_in.read()
+    except OSError:
+        raise AocModError(f"unable to open input file: {input_path}") from None
 
     # parse the input data
     input_data = raw_input.splitlines()

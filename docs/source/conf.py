@@ -9,7 +9,7 @@
 project = "AOC Mod"
 copyright = "2025, David Eyrich"
 author = "David Eyrich"
-release = "0.2.1"
+release = "0.2.2"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -28,8 +28,6 @@ html_static_path = ["../build/html"]
 autoapi_dirs = ["../../src/aoc_mod"]
 autoapi_ignore = ["*/templates/*"]
 
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown'
-}
+source_suffix = {".rst": "restructuredtext", ".txt": "markdown", ".md": "markdown"}
+
+myst_heading_anchors = 3
