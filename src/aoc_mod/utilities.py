@@ -199,6 +199,12 @@ class AocMod:
         :return: the puzzle input as a string
         :rtype: str
         """
+        # verify that we have a valid session-id, otherwise we can't get input
+        if not self.session_id:
+            raise AocModError(
+                "unable to get puzzle input from an unauthenticated session"
+            )
+
         # get the cache data for the last input pull, and if it was less than 60 seconds ago, raise an error
         cache_data = self._get_cache_data()
         if cache_data["last_input_pull"]:
