@@ -2,6 +2,16 @@
 
 All notable changes to AOC-Mod will be documented in this file.
 
+## [0.2.3] - 2025-11-16
+
+### Added
+
+- Timeouts of 120 seconds between HTTP requests to the Advent of Code website. This was added to ensure that the community guidelines are met properly.
+
+### Documentation
+
+- Updated README with information about new timeout features and outlining the caching of puzzle input and instructions per puzzle day.
+
 ## [0.2.2] - 2025-11-16
 
 ### Changed

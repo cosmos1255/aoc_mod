@@ -11,4 +11,6 @@ dist/
 challenges/
 poetry.lock
 
+.aoc_mod_cache.pkl
+
 docs/build

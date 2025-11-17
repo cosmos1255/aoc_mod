@@ -3,6 +3,7 @@
 import os
 import re
 import time
+import pickle
 from pathlib import Path
 
 import markdownify
@@ -41,12 +42,28 @@ class AocMod:
         self.curr_time = self._get_current_time()
 
         # set the authentication data for requests
-        self.user_agent = requests.utils.default_headers()["User-Agent"]
+        self.user_agent = "https://github.com/cosmos1255/aoc_mod by cosmos1255"
 
         if session_id:
             self.session_id = session_id
         else:
             self.session_id = self._get_auth_data()
+
+        self._cache_file = Path(".aoc_mod_cache.pkl")
+        self._cache_file.touch(exist_ok=True)
+        self._cache_data = {
+            "last_input_pull": None,
+            "last_instruction_pull": None,
+            "last_submission_push": None,
+        }
+
+        # if the cache file is empty, initialize it with the default cache data
+        try:
+            self._cache_data = pickle.loads(bytes.fromhex(self._cache_file.read_text()))
+        except EOFError:
+            self._cache_file.write_text(pickle.dumps(self._cache_data).hex())
+
+        self._time_to_wait_after_pull = 120  # seconds to wait after pulling input or instructions before allowing another pull
 
     def _get_auth_data(self) -> str:
         """will return the SESSION_ID environment variable, if set
@@ -64,6 +81,46 @@ class AocMod:
         """
         return time.localtime(time.time())
 
+    def _get_cache_data(self) -> dict:
+        """get the cache data from the cache file
+
+        :return: the cache data as a dictionary
+        :rtype: dict
+        """
+        try:
+            return pickle.loads(bytes.fromhex(self._cache_file.read_text()))
+        except EOFError:
+            # cache file is empty, return default cache data
+            return {
+                "last_input_pull": None,
+                "last_instruction_pull": None,
+                "last_submission_push": None,
+            }
+
+    def _set_cache_data(self, cache_data: dict) -> None:
+        """set the cache data in the cache file
+
+        :param cache_data: the cache data to set
+        :type cache_data: dict
+        """
+        self._cache_file.write_text(pickle.dumps(cache_data).hex())
+
+    def _is_request_timed_out(self, last_pull_time: float) -> tuple[bool, int]:
+        """check if the last pull time is within the timeout period
+
+        :param last_pull_time: the time of the last pull in seconds since epoch
+        :type last_pull_time: float
+        :return: a tuple of (is_timed_out, timed_out_seconds_left) where is_timed_out is a boolean indicating
+            if the request is timed out and timed_out_seconds_left is the number of seconds left until the timeout expires
+        :rtype: tuple[bool, int]
+        """
+        curr_time = time.time()
+        is_timed_out = (curr_time - last_pull_time) < self._time_to_wait_after_pull
+        timed_out_seconds_left = int(
+            self._time_to_wait_after_pull - (curr_time - last_pull_time)
+        )
+        return is_timed_out, timed_out_seconds_left
+
     def get_puzzle_instructions(self, year: int, day: int) -> str:
         """get puzzle instructions for the entered (or current) year and day
 
@@ -75,6 +132,24 @@ class AocMod:
         :return: markdownify output string of puzzle instructions
         :rtype: str
         """
+
+        # get the cache data for the last instruction pull, and if it was less than 60 seconds ago, raise an error
+        cache_data = self._get_cache_data()
+        if cache_data["last_instruction_pull"]:
+            is_timed_out, seconds_left = self._is_request_timed_out(
+                cache_data["last_instruction_pull"]
+            )
+            if is_timed_out:
+                raise AocModError(
+                    f"puzzle instructions were pulled too recently, please wait {seconds_left} seconds before pulling again"
+                )
+            else:
+                cache_data["last_instruction_pull"] = time.time()
+                self._set_cache_data(cache_data)
+        else:
+            cache_data["last_instruction_pull"] = time.time()
+            self._set_cache_data(cache_data)
+
         # if this function wasn't provided with a date, get current year, day
         if not year or not day:
             year = self.curr_time.tm_year
@@ -124,6 +199,23 @@ class AocMod:
         :return: the puzzle input as a string
         :rtype: str
         """
+        # get the cache data for the last input pull, and if it was less than 60 seconds ago, raise an error
+        cache_data = self._get_cache_data()
+        if cache_data["last_input_pull"]:
+            is_timed_out, seconds_left = self._is_request_timed_out(
+                cache_data["last_input_pull"]
+            )
+            if is_timed_out:
+                raise AocModError(
+                    f"puzzle input was pulled too recently, please wait {seconds_left} seconds before pulling again"
+                )
+            else:
+                cache_data["last_input_pull"] = time.time()
+                self._set_cache_data(cache_data)
+        else:
+            cache_data["last_input_pull"] = time.time()
+            self._set_cache_data(cache_data)
+
         # if this function wasn't provided with a date, get current year, day
         if not year or not day:
             year = self.curr_time.tm_year
@@ -170,6 +262,23 @@ class AocMod:
             raise AocModError(
                 "unable to submit puzzle answer to an unauthenticated session"
             )
+
+        # get the cache data for the last submission, and if it was less than 60 seconds ago, raise an error
+        cache_data = self._get_cache_data()
+        if cache_data["last_submission_push"]:
+            is_timed_out, seconds_left = self._is_request_timed_out(
+                cache_data["last_submission_push"]
+            )
+            if is_timed_out:
+                raise AocModError(
+                    f"puzzle answers were submitted too recently, please wait {seconds_left} seconds before submitting again"
+                )
+            else:
+                cache_data["last_submission_push"] = time.time()
+                self._set_cache_data(cache_data)
+        else:
+            cache_data["last_submission_push"] = time.time()
+            self._set_cache_data(cache_data)
 
         # submit the puzzle answer
         try:
