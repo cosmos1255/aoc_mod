@@ -2,6 +2,12 @@
 
 All notable changes to AOC-Mod will be documented in this file.
 
+## [0.2.5] - 2025-11-21
+
+### Fixed
+
+- Dependencies unnecessary for actually running the tool have been removed.
+
 ## [0.2.4] - 2025-11-16
 
 ### Added
